@@ -1,57 +1,60 @@
-import React from 'react';
-import FontAwesome from '@expo/vector-icons/FontAwesome';
-import { Link, Tabs } from 'expo-router';
-import { Pressable } from 'react-native';
-
-import Colors from '@/constants/Colors';
-import { useColorScheme } from '@/components/useColorScheme';
-import { useClientOnlyValue } from '@/components/useClientOnlyValue';
-
-// You can explore the built-in icon families and icons on the web at https://icons.expo.fyi/
-function TabBarIcon(props: {
-  name: React.ComponentProps<typeof FontAwesome>['name'];
-  color: string;
-}) {
-  return <FontAwesome size={28} style={{ marginBottom: -3 }} {...props} />;
-}
+import { Tabs } from 'expo-router';
+import { Home, PenSquare, CheckSquare, Trophy, User } from 'lucide-react-native';
+import { colors, bottomNav } from '@/src/theme/tokens';
 
 export default function TabLayout() {
-  const colorScheme = useColorScheme();
-
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
-        // Disable the static render of the header on web
-        // to prevent a hydration error in React Navigation v6.
-        headerShown: useClientOnlyValue(false, true),
-      }}>
+        headerShown: false,
+        tabBarActiveTintColor: bottomNav.activeColor,
+        tabBarInactiveTintColor: bottomNav.inactiveColor,
+        tabBarStyle: {
+          backgroundColor: bottomNav.background,
+          height: bottomNav.height,
+          borderTopWidth: 0,
+          paddingBottom: 8,
+          paddingTop: 8,
+        },
+        tabBarLabelStyle: {
+          fontSize: 10,
+          fontWeight: '600',
+        },
+      }}
+    >
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Tab One',
-          tabBarIcon: ({ color }) => <TabBarIcon name="code" color={color} />,
-          headerRight: () => (
-            <Link href="/modal" asChild>
-              <Pressable>
-                {({ pressed }) => (
-                  <FontAwesome
-                    name="info-circle"
-                    size={25}
-                    color={Colors[colorScheme ?? 'light'].text}
-                    style={{ marginRight: 15, opacity: pressed ? 0.5 : 1 }}
-                  />
-                )}
-              </Pressable>
-            </Link>
-          ),
+          title: 'HOME',
+          tabBarIcon: ({ color, size }) => <Home size={size} color={color} />,
         }}
       />
       <Tabs.Screen
-        name="two"
+        name="post"
         options={{
-          title: 'Tab Two',
-          tabBarIcon: ({ color }) => <TabBarIcon name="code" color={color} />,
+          title: 'POST',
+          tabBarIcon: ({ color, size }) => <PenSquare size={size} color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="board"
+        options={{
+          title: 'BOARD',
+          tabBarIcon: ({ color, size }) => <CheckSquare size={size} color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="reward"
+        options={{
+          title: 'REWARD',
+          tabBarIcon: ({ color, size }) => <Trophy size={size} color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="my"
+        options={{
+          title: 'MY',
+          tabBarIcon: ({ color, size }) => <User size={size} color={color} />,
         }}
       />
     </Tabs>

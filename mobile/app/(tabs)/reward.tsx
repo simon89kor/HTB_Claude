@@ -2,11 +2,11 @@ import { View, Text, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors, typography } from '@/src/theme/tokens';
 
-export default function HomeScreen() {
+export default function RewardScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.content}>
-        <Text style={styles.title}>HOME</Text>
+        <Text style={styles.title}>REWARD</Text>
       </View>
     </SafeAreaView>
   );
