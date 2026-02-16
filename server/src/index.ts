@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 import authRoutes from './routes/auth';
 import userRoutes from './routes/users';
 import routineRoutes from './routes/routines';
+import adminRoutes from './routes/admin';
 import { errorHandler } from './middleware/errorHandler';
 import { env } from './config/env';
 
@@ -23,6 +24,7 @@ app.get('/health', (_req, res) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/routines', routineRoutes);
+app.use('/api/admin', adminRoutes);
 
 // Error handler (must be last)
 app.use(errorHandler);
