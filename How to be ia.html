@@ -1,0 +1,1389 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>How To Be - Service IA (Information Architecture)</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;500;600;700;800&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: #0a0a0a;
+    color: #e0e0e0;
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+
+  /* ===== HEADER ===== */
+  .header {
+    background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 100%);
+    padding: 60px 40px 40px;
+    border-bottom: 1px solid #222;
+  }
+  .header-inner {
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+  .header .badge {
+    display: inline-block;
+    background: #2dd4a8;
+    color: #000;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 4px 12px;
+    border-radius: 20px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 16px;
+  }
+  .header h1 {
+    font-size: 42px;
+    font-weight: 800;
+    color: #fff;
+    margin-bottom: 8px;
+    letter-spacing: -1px;
+  }
+  .header h1 span { color: #2dd4a8; }
+  .header .subtitle {
+    font-size: 18px;
+    color: #888;
+    font-weight: 400;
+    margin-bottom: 24px;
+  }
+  .header-meta {
+    display: flex;
+    gap: 24px;
+    font-size: 13px;
+    color: #666;
+  }
+  .header-meta span { display: flex; align-items: center; gap: 6px; }
+
+  /* ===== SECTION COMMON ===== */
+  .section {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 60px 40px;
+  }
+  .section-title {
+    font-size: 28px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .section-title .num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    background: #2dd4a8;
+    color: #000;
+    font-size: 16px;
+    font-weight: 800;
+    border-radius: 10px;
+  }
+  .section-desc {
+    font-size: 15px;
+    color: #777;
+    margin-bottom: 40px;
+    padding-left: 48px;
+  }
+
+  /* ===== GAP ANALYSIS ===== */
+  .gap-section {
+    background: #111;
+    border-top: 1px solid #222;
+    border-bottom: 1px solid #222;
+  }
+  .gap-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+  }
+  .gap-card {
+    background: #1a1a1a;
+    border: 1px solid #2a2a2a;
+    border-radius: 16px;
+    padding: 28px;
+  }
+  .gap-card.exists {
+    border-left: 4px solid #2dd4a8;
+  }
+  .gap-card.missing {
+    border-left: 4px solid #ff6b6b;
+  }
+  .gap-card.partial {
+    border-left: 4px solid #ffd93d;
+  }
+  .gap-card h3 {
+    font-size: 16px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .gap-card .status {
+    font-size: 10px;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 4px;
+    text-transform: uppercase;
+  }
+  .gap-card.exists .status { background: rgba(45,212,168,0.15); color: #2dd4a8; }
+  .gap-card.missing .status { background: rgba(255,107,107,0.15); color: #ff6b6b; }
+  .gap-card.partial .status { background: rgba(255,217,61,0.15); color: #ffd93d; }
+  .gap-card ul {
+    list-style: none;
+    padding: 0;
+  }
+  .gap-card li {
+    font-size: 13px;
+    color: #999;
+    padding: 4px 0;
+    padding-left: 16px;
+    position: relative;
+  }
+  .gap-card li::before {
+    content: '·';
+    position: absolute;
+    left: 0;
+    color: #555;
+    font-weight: 700;
+  }
+
+  /* ===== CURRENT SCREEN MAP ===== */
+  .screen-map {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 20px;
+  }
+  .screen-group {
+    background: #151515;
+    border: 1px solid #252525;
+    border-radius: 16px;
+    padding: 24px;
+    transition: border-color 0.2s;
+  }
+  .screen-group:hover { border-color: #2dd4a8; }
+  .screen-group h3 {
+    font-size: 15px;
+    font-weight: 700;
+    color: #2dd4a8;
+    margin-bottom: 4px;
+  }
+  .screen-group .group-desc {
+    font-size: 12px;
+    color: #666;
+    margin-bottom: 14px;
+  }
+  .screen-list {
+    list-style: none;
+    padding: 0;
+  }
+  .screen-list li {
+    font-size: 13px;
+    color: #aaa;
+    padding: 5px 0;
+    border-bottom: 1px solid #1e1e1e;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .screen-list li:last-child { border-bottom: none; }
+  .screen-list li .dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #2dd4a8;
+    flex-shrink: 0;
+  }
+
+  /* ===== IA TREE ===== */
+  .ia-container {
+    background: #111;
+    border-top: 1px solid #222;
+    border-bottom: 1px solid #222;
+  }
+
+  .ia-tree {
+    position: relative;
+  }
+
+  /* Bottom Nav Level */
+  .nav-row {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    margin-bottom: 48px;
+    flex-wrap: wrap;
+  }
+  .nav-item {
+    background: #1a1a1a;
+    border: 2px solid #2dd4a8;
+    border-radius: 16px;
+    padding: 16px 24px;
+    text-align: center;
+    min-width: 140px;
+    cursor: default;
+  }
+  .nav-item .icon { font-size: 24px; margin-bottom: 4px; }
+  .nav-item .label {
+    font-size: 14px;
+    font-weight: 700;
+    color: #2dd4a8;
+  }
+  .nav-item .sublabel {
+    font-size: 11px;
+    color: #666;
+    margin-top: 2px;
+  }
+
+  /* IA Branch */
+  .ia-branch {
+    margin-bottom: 48px;
+  }
+  .ia-branch-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+    padding-bottom: 12px;
+    border-bottom: 2px solid #2dd4a8;
+  }
+  .ia-branch-header .tab-icon {
+    width: 40px;
+    height: 40px;
+    background: #2dd4a8;
+    color: #000;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    font-weight: 700;
+  }
+  .ia-branch-header h3 {
+    font-size: 20px;
+    font-weight: 700;
+    color: #fff;
+  }
+  .ia-branch-header .tab-desc {
+    font-size: 13px;
+    color: #888;
+  }
+
+  .ia-level {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 16px;
+    margin-left: 20px;
+    padding-left: 20px;
+    border-left: 2px solid #252525;
+  }
+
+  .ia-node {
+    background: #181818;
+    border: 1px solid #2a2a2a;
+    border-radius: 12px;
+    padding: 16px;
+    transition: all 0.2s;
+  }
+  .ia-node:hover {
+    border-color: #444;
+    transform: translateY(-2px);
+  }
+  .ia-node.new {
+    border-color: #ff6b6b;
+    background: rgba(255,107,107,0.03);
+  }
+  .ia-node.exists {
+    border-color: #2a2a2a;
+  }
+  .ia-node h4 {
+    font-size: 14px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 4px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .ia-node h4 .tag {
+    font-size: 9px;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 3px;
+    text-transform: uppercase;
+  }
+  .ia-node.new h4 .tag { background: rgba(255,107,107,0.2); color: #ff6b6b; }
+  .ia-node.exists h4 .tag { background: rgba(45,212,168,0.15); color: #2dd4a8; }
+  .ia-node .node-desc {
+    font-size: 12px;
+    color: #777;
+    margin-bottom: 8px;
+  }
+  .ia-node .screens {
+    font-size: 11px;
+    color: #555;
+  }
+  .ia-node .sub-items {
+    list-style: none;
+    padding: 0;
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid #222;
+  }
+  .ia-node .sub-items li {
+    font-size: 12px;
+    color: #888;
+    padding: 3px 0;
+    padding-left: 12px;
+    position: relative;
+  }
+  .ia-node .sub-items li::before {
+    content: '→';
+    position: absolute;
+    left: 0;
+    color: #555;
+    font-size: 10px;
+  }
+  .ia-node .sub-items li.new-item { color: #ff6b6b; }
+  .ia-node .sub-items li.new-item::before { color: #ff6b6b; }
+
+  /* ===== GLOBAL FLOWS ===== */
+  .flow-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 20px;
+  }
+  .flow-card {
+    background: #151515;
+    border: 1px solid #2a2a2a;
+    border-radius: 16px;
+    padding: 24px;
+  }
+  .flow-card.critical { border-top: 3px solid #ff6b6b; }
+  .flow-card.important { border-top: 3px solid #ffd93d; }
+  .flow-card.enhancement { border-top: 3px solid #2dd4a8; }
+  .flow-card h3 {
+    font-size: 15px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 4px;
+  }
+  .flow-card .priority {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+  .flow-card.critical .priority { color: #ff6b6b; }
+  .flow-card.important .priority { color: #ffd93d; }
+  .flow-card.enhancement .priority { color: #2dd4a8; }
+  .flow-card .flow-steps {
+    list-style: none;
+    padding: 0;
+  }
+  .flow-card .flow-steps li {
+    font-size: 13px;
+    color: #999;
+    padding: 6px 0;
+    padding-left: 28px;
+    position: relative;
+    border-left: 1px solid #333;
+    margin-left: 8px;
+  }
+  .flow-card .flow-steps li::before {
+    content: attr(data-step);
+    position: absolute;
+    left: -9px;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: #252525;
+    border: 1px solid #444;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 9px;
+    color: #aaa;
+    font-weight: 700;
+  }
+  .flow-card .flow-steps li:last-child { border-left: none; }
+
+  /* ===== LEGEND ===== */
+  .legend {
+    display: flex;
+    gap: 24px;
+    padding: 16px 24px;
+    background: #151515;
+    border-radius: 12px;
+    margin-bottom: 32px;
+    flex-wrap: wrap;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: #aaa;
+  }
+  .legend-item .legend-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 3px;
+  }
+  .legend-item .legend-dot.green { background: #2dd4a8; }
+  .legend-item .legend-dot.red { background: #ff6b6b; }
+  .legend-item .legend-dot.yellow { background: #ffd93d; }
+
+  /* ===== SUMMARY TABLE ===== */
+  .summary-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 24px;
+  }
+  .summary-table th {
+    text-align: left;
+    font-size: 12px;
+    font-weight: 700;
+    color: #2dd4a8;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    padding: 12px 16px;
+    border-bottom: 2px solid #2dd4a8;
+  }
+  .summary-table td {
+    font-size: 13px;
+    color: #aaa;
+    padding: 12px 16px;
+    border-bottom: 1px solid #1e1e1e;
+    vertical-align: top;
+  }
+  .summary-table tr:hover td { background: rgba(45,212,168,0.03); }
+  .summary-table .count {
+    font-weight: 700;
+    color: #fff;
+    font-size: 18px;
+  }
+
+  /* ===== FOOTER ===== */
+  .footer {
+    text-align: center;
+    padding: 40px;
+    color: #444;
+    font-size: 12px;
+    border-top: 1px solid #1a1a1a;
+  }
+
+  /* ===== RESPONSIVE ===== */
+  @media (max-width: 900px) {
+    .header { padding: 40px 20px 30px; }
+    .header h1 { font-size: 28px; }
+    .section { padding: 40px 20px; }
+    .gap-grid { grid-template-columns: 1fr; }
+    .ia-level { grid-template-columns: 1fr; }
+    .nav-row { gap: 8px; }
+    .nav-item { min-width: 100px; padding: 12px 16px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ===== HEADER ===== -->
+<div class="header">
+  <div class="header-inner">
+    <span class="badge">Product IA Consulting</span>
+    <h1>How To Be <span>— Service IA</span></h1>
+    <p class="subtitle">전문가 루틴 기반 To-Do List 서비스의 전체 Information Architecture 설계</p>
+    <div class="header-meta">
+      <span>📅 2026.02.14</span>
+      <span>📱 Mobile App (iOS/Android)</span>
+      <span>🔖 Version 1.0 — Comprehensive IA</span>
+    </div>
+  </div>
+</div>
+
+<!-- ===== SECTION 1: 현재 디자인 화면 맵 ===== -->
+<div class="section">
+  <div class="section-title"><span class="num">1</span> 현재 디자인 화면 맵</div>
+  <p class="section-desc">현재 Figma Design section에 존재하는 42개 화면의 구조 정리</p>
+
+  <div class="screen-map">
+    <div class="screen-group">
+      <h3>🏠 HOME</h3>
+      <div class="group-desc">루틴 마켓플레이스 / 스토어</div>
+      <ul class="screen-list">
+        <li><span class="dot"></span>HOME01 — 메인 홈 (카테고리 탐색 + TOP 10)</li>
+      </ul>
+    </div>
+
+    <div class="screen-group">
+      <h3>📦 PRODUCT</h3>
+      <div class="group-desc">루틴 상품 상세 페이지</div>
+      <ul class="screen-list">
+        <li><span class="dot"></span>PRODUCT01 — 운동루틴 상세 (김종국)</li>
+        <li><span class="dot"></span>PRODUCT02 — 식단관리 상세 (밀프렙)</li>
+        <li><span class="dot"></span>PRODUCT03 — 복합루틴 상세 (쌍둥이 엄마)</li>
+        <li><span class="dot"></span>PRODUCT04 — 복합루틴 상세 (변형)</li>
+      </ul>
+    </div>
+
+    <div class="screen-group">
+      <h3>🔔 알림</h3>
+      <div class="group-desc">일정 알림 + 커뮤니티 알림</div>
+      <ul class="screen-list">
+        <li><span class="dot"></span>알림01-01 — 일정 알림 (Empty)</li>
+        <li><span class="dot"></span>알림01-02 — 일정 알림 (리스트)</li>
+        <li><span class="dot"></span>알림01-03 — 커뮤니티 알림</li>
+      </ul>
+    </div>
+
+    <div class="screen-group">
+      <h3>📅 일정선택</h3>
+      <div class="group-desc">루틴 시작일/종료일 캘린더</div>
+      <ul class="screen-list">
+        <li><span class="dot"></span>일정선택01-01 — 시작일 선택 (기본)</li>
+        <li><span class="dot"></span>일정선택01-02 — 시작일 선택 (선택됨)</li>
+        <li><span class="dot"></span>일정선택01-03 — 종료일 선택</li>
+        <li><span class="dot"></span>일정선택01-04 — 종료일 선택 (기본)</li>
+      </ul>
+    </div>
+
+    <div class="screen-group">
+      <h3>⚙️ TODO DETAIL</h3>
+      <div class="group-desc">할일 상세 설정 및 하위 항목</div>
+      <ul class="screen-list">
+        <li><span class="dot"></span>TODO DETAIL01-01 — 상세 설정 (기본)</li>
+        <li><span class="dot"></span>TODO DETAIL01-02 — 상세 설정 (활성화)</li>
+        <li><span class="dot"></span>TODO DETAIL02-01 — 하위 항목 (Empty)</li>
+        <li><span class="dot"></span>TODO DETAIL02-02 — 하위 항목 (입력됨)</li>
+      </ul>
+    </div>
+
+    <div class="screen-group">
+      <h3>📋 DASHBOARD</h3>
+      <div class="group-desc">주간/월간 투두 보드</div>
+      <ul class="screen-list">
+        <li><span class="dot"></span>DASHBOARD01 — Empty State</li>
+        <li><span class="dot"></span>DASHBOARD02-01 — 루틴 카드 확장</li>
+        <li><span class="dot"></span>DASHBOARD02-02 — 투두 항목 채워짐</li>
+        <li><span class="dot"></span>DASHBOARD02-03 — 다중 루틴 접힘</li>
+        <li><span class="dot"></span>DASHBOARD03-01 — 월간 캘린더 뷰</li>
+        <li><span class="dot"></span>DASHBOARD03-02 — 캘린더 + 루틴 목록</li>
+      </ul>
+    </div>
+
+    <div class="screen-group">
+      <h3>➕ 루틴 추가하기</h3>
+      <div class="group-desc">나만의 커스텀 루틴 생성</div>
+      <ul class="screen-list">
+        <li><span class="dot"></span>루틴 추가하기01-01 — 루틴 정보 입력</li>
+        <li><span class="dot"></span>루틴 추가하기01-02 — 추가 설정</li>
+        <li><span class="dot"></span>루틴 추가하기02-01 — 날짜 선택</li>
+        <li><span class="dot"></span>루틴 추가하기02-02 — To-Do 작성</li>
+        <li><span class="dot"></span>루틴 추가하기02-03 — 작성 완료</li>
+      </ul>
+    </div>
+
+    <div class="screen-group">
+      <h3>💬 COMMUNITY</h3>
+      <div class="group-desc">SNS 피드 + 게시물 상세</div>
+      <ul class="screen-list">
+        <li><span class="dot"></span>COMMUNITY01 — 피드 목록</li>
+        <li><span class="dot"></span>COMMUNITY POST01 (A) — 게시물 상세</li>
+        <li><span class="dot"></span>COMMUNITY POST01 (B) — 게시물 상세 변형</li>
+      </ul>
+    </div>
+
+    <div class="screen-group">
+      <h3>✍️ COMMUNITY 작성</h3>
+      <div class="group-desc">게시물 작성 플로우</div>
+      <ul class="screen-list">
+        <li><span class="dot"></span>COMMUNITY작성01 — 사진 선택</li>
+        <li><span class="dot"></span>COMMUNITY작성02 — 사진 편집</li>
+        <li><span class="dot"></span>COMMUNITY작성03 — 필터 적용</li>
+        <li><span class="dot"></span>COMMUNITY작성04-01 — 제목/해시태그 입력</li>
+        <li><span class="dot"></span>COMMUNITY작성04-02 — 유형 선택</li>
+        <li><span class="dot"></span>COMMUNITY작성05 — 최종 확인</li>
+        <li><span class="dot"></span>COMMUNITY작성06-01 — 루틴 연결</li>
+        <li><span class="dot"></span>COMMUNITY작성06-02 — 게시 완료</li>
+      </ul>
+    </div>
+
+    <div class="screen-group">
+      <h3>🧩 기타</h3>
+      <div class="group-desc">공통 컴포넌트</div>
+      <ul class="screen-list">
+        <li><span class="dot"></span>Frame 1161 — Bottom Navigation Bar</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- ===== SECTION 2: GAP ANALYSIS ===== -->
+<div class="gap-section">
+  <div class="section">
+    <div class="section-title"><span class="num">2</span> Gap Analysis — 현재 vs 필요</div>
+    <p class="section-desc">IR에서 정의한 서비스 범위 대비 현재 디자인이 커버하지 못하는 영역 분석</p>
+
+    <div class="legend">
+      <div class="legend-item"><span class="legend-dot green"></span> 디자인 존재</div>
+      <div class="legend-item"><span class="legend-dot yellow"></span> 부분적 존재 (보완 필요)</div>
+      <div class="legend-item"><span class="legend-dot red"></span> 미존재 (신규 설계 필요)</div>
+    </div>
+
+    <div class="gap-grid">
+      <div class="gap-card missing">
+        <h3>Onboarding / Auth <span class="status">Missing</span></h3>
+        <ul>
+          <li>앱 진입 시 서비스 소개 (Walkthrough)</li>
+          <li>회원가입 (이메일 / 소셜 로그인)</li>
+          <li>로그인 / 비밀번호 찾기</li>
+          <li>관심 카테고리 선택 (Preference)</li>
+          <li>첫 루틴 추천 가이드</li>
+        </ul>
+      </div>
+
+      <div class="gap-card missing">
+        <h3>MY Page (프로필) <span class="status">Missing</span></h3>
+        <ul>
+          <li>프로필 정보 (닉네임, 프로필 사진, 소개)</li>
+          <li>내 루틴 목록 (진행 중 / 완료)</li>
+          <li>내 커뮤니티 게시물</li>
+          <li>팔로워 / 팔로잉 목록</li>
+          <li>설정 (알림, 계정, 고객센터)</li>
+          <li>앱 정보 / 로그아웃 / 회원탈퇴</li>
+        </ul>
+      </div>
+
+      <div class="gap-card missing">
+        <h3>REWARD 탭 <span class="status">Missing</span></h3>
+        <ul>
+          <li>Bottom Nav에 "REWARD" 탭이 있으나 화면 없음</li>
+          <li>보상/포인트 체계 설계 필요</li>
+          <li>달성 배지 / 스트릭 시스템</li>
+          <li>랭킹 보상 연동</li>
+        </ul>
+      </div>
+
+      <div class="gap-card missing">
+        <h3>결제 / 구매 플로우 <span class="status">Missing</span></h3>
+        <ul>
+          <li>루틴 가격 표시 (1주 1,400원 / 4주 5,600원 / 100일 20,000원)</li>
+          <li>결제 수단 선택</li>
+          <li>결제 확인 / 영수증</li>
+          <li>구매 내역</li>
+          <li>환불 정책 안내</li>
+        </ul>
+      </div>
+
+      <div class="gap-card missing">
+        <h3>QR Code 공유 <span class="status">Missing</span></h3>
+        <ul>
+          <li>IR에서 핵심 차별화 요소로 제시</li>
+          <li>QR 코드 생성 화면</li>
+          <li>QR 스캔 → 루틴 추가 플로우</li>
+          <li>공유 링크 생성 / SNS 공유</li>
+        </ul>
+      </div>
+
+      <div class="gap-card missing">
+        <h3>검색 / 디스커버리 <span class="status">Missing</span></h3>
+        <ul>
+          <li>HOME에 검색바 없음 (COMMUNITY에만 존재)</li>
+          <li>루틴 검색 결과 화면</li>
+          <li>필터링 (카테고리, 기간, 가격, 인기순)</li>
+          <li>추천 알고리즘 기반 탐색</li>
+        </ul>
+      </div>
+
+      <div class="gap-card missing">
+        <h3>Routine Provider 관리 <span class="status">Missing</span></h3>
+        <ul>
+          <li>Provider 프로필 페이지</li>
+          <li>Provider 루틴 작성/관리 도구</li>
+          <li>수익 대시보드</li>
+          <li>Provider 신청 플로우</li>
+        </ul>
+      </div>
+
+      <div class="gap-card partial">
+        <h3>HOME 탐색 구조 <span class="status">Partial</span></h3>
+        <ul>
+          <li>TOP 10 랭킹 존재 ✓</li>
+          <li>카테고리 탭 존재 ✓</li>
+          <li>검색 기능 부재 ✗</li>
+          <li>배너/프로모션 영역 부재 ✗</li>
+          <li>신규 루틴 / 추천 섹션 부재 ✗</li>
+        </ul>
+      </div>
+
+      <div class="gap-card partial">
+        <h3>COMMUNITY 기능 <span class="status">Partial</span></h3>
+        <ul>
+          <li>피드 구조 존재 ✓</li>
+          <li>게시물 작성 플로우 존재 ✓</li>
+          <li>좋아요/댓글/관심 존재 ✓</li>
+          <li>유저 프로필 연결 부재 ✗</li>
+          <li>신고/차단 기능 부재 ✗</li>
+          <li>DM/메시지 부재 ✗</li>
+        </ul>
+      </div>
+
+      <div class="gap-card partial">
+        <h3>DASHBOARD 기능 <span class="status">Partial</span></h3>
+        <ul>
+          <li>주간/월간 뷰 존재 ✓</li>
+          <li>투두 체크 인터랙션 존재 ✓</li>
+          <li>루틴 카드 확장/접힘 ✓</li>
+          <li>완료율/통계 부재 ✗</li>
+          <li>루틴별 진행률 표시 부재 ✗</li>
+        </ul>
+      </div>
+
+      <div class="gap-card exists">
+        <h3>PRODUCT 상세 <span class="status">Exists</span></h3>
+        <ul>
+          <li>Provider 프로필 + 소개 ✓</li>
+          <li>루틴 미리보기 ✓</li>
+          <li>카테고리 태그 ✓</li>
+          <li>CTA "내 루틴에 추가하기" ✓</li>
+        </ul>
+      </div>
+
+      <div class="gap-card exists">
+        <h3>알림 시스템 <span class="status">Exists</span></h3>
+        <ul>
+          <li>일정/커뮤니티 탭 분리 ✓</li>
+          <li>알림 리스트 뷰 ✓</li>
+          <li>Empty State ✓</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== SECTION 3: FULL IA ===== -->
+<div class="ia-container">
+  <div class="section">
+    <div class="section-title"><span class="num">3</span> 전체 서비스 IA (Proposed)</div>
+    <p class="section-desc">기존 화면 + 신규 필요 화면을 포함한 전체 Information Architecture. <span style="color:#ff6b6b;">빨간 테두리 = 신규 설계 필요</span></p>
+
+    <div class="legend">
+      <div class="legend-item"><span class="legend-dot green"></span> 기존 디자인 존재</div>
+      <div class="legend-item"><span class="legend-dot red"></span> 신규 설계 필요</div>
+    </div>
+
+    <!-- Bottom Navigation -->
+    <div class="nav-row">
+      <div class="nav-item"><div class="icon">🏠</div><div class="label">HOME</div><div class="sublabel">루틴 스토어</div></div>
+      <div class="nav-item"><div class="icon">✍️</div><div class="label">POST</div><div class="sublabel">커뮤니티</div></div>
+      <div class="nav-item"><div class="icon">✅</div><div class="label">BOARD</div><div class="sublabel">투두 대시보드</div></div>
+      <div class="nav-item"><div class="icon">🏆</div><div class="label">REWARD</div><div class="sublabel">보상/달성</div></div>
+      <div class="nav-item"><div class="icon">👤</div><div class="label">MY</div><div class="sublabel">프로필/설정</div></div>
+    </div>
+
+    <!-- ===== TAB 0: GLOBAL / PRE-LOGIN ===== -->
+    <div class="ia-branch">
+      <div class="ia-branch-header">
+        <div class="tab-icon">🚀</div>
+        <div>
+          <h3>Global — Onboarding & Auth</h3>
+          <div class="tab-desc">앱 진입 전 사용자 획득 및 인증 플로우</div>
+        </div>
+      </div>
+      <div class="ia-level">
+        <div class="ia-node new">
+          <h4>Splash <span class="tag">New</span></h4>
+          <div class="node-desc">앱 로딩 화면 (브랜드 로고)</div>
+        </div>
+        <div class="ia-node new">
+          <h4>Walkthrough <span class="tag">New</span></h4>
+          <div class="node-desc">서비스 핵심 가치 소개 (3~4 슬라이드)</div>
+          <ul class="sub-items">
+            <li class="new-item">전문가 루틴 소개</li>
+            <li class="new-item">To-Do 관리 방식</li>
+            <li class="new-item">커뮤니티 & 공유</li>
+          </ul>
+        </div>
+        <div class="ia-node new">
+          <h4>Sign Up / Login <span class="tag">New</span></h4>
+          <div class="node-desc">회원가입 및 로그인</div>
+          <ul class="sub-items">
+            <li class="new-item">소셜 로그인 (카카오, 애플, 구글)</li>
+            <li class="new-item">이메일 가입</li>
+            <li class="new-item">비밀번호 찾기</li>
+            <li class="new-item">약관 동의</li>
+          </ul>
+        </div>
+        <div class="ia-node new">
+          <h4>Preference Setup <span class="tag">New</span></h4>
+          <div class="node-desc">관심 카테고리 & 첫 루틴 추천</div>
+          <ul class="sub-items">
+            <li class="new-item">카테고리 선택 (운동/식단/자기계발/...)</li>
+            <li class="new-item">목표 기간 선택</li>
+            <li class="new-item">추천 루틴 제안</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== TAB 1: HOME ===== -->
+    <div class="ia-branch">
+      <div class="ia-branch-header">
+        <div class="tab-icon">🏠</div>
+        <div>
+          <h3>HOME — 루틴 스토어</h3>
+          <div class="tab-desc">전문가 루틴 탐색, 검색, 구매의 시작점</div>
+        </div>
+      </div>
+      <div class="ia-level">
+        <div class="ia-node exists">
+          <h4>HOME Main <span class="tag">Exists</span></h4>
+          <div class="node-desc">루틴 마켓플레이스 메인</div>
+          <div class="screens">HOME01</div>
+          <ul class="sub-items">
+            <li>NOW TOP 10 TO-DO 랭킹</li>
+            <li>카테고리 탭 (전체/운동/식단/자기계발)</li>
+            <li>루틴 카드 리스트</li>
+            <li class="new-item">🔍 검색 바 (추가 필요)</li>
+            <li class="new-item">📢 배너 / 프로모션 영역 (추가 필요)</li>
+            <li class="new-item">🆕 신규 등록 루틴 섹션 (추가 필요)</li>
+          </ul>
+        </div>
+        <div class="ia-node new">
+          <h4>Search & Filter <span class="tag">New</span></h4>
+          <div class="node-desc">루틴 검색 및 필터링</div>
+          <ul class="sub-items">
+            <li class="new-item">키워드 검색</li>
+            <li class="new-item">최근 검색어</li>
+            <li class="new-item">인기 검색어</li>
+            <li class="new-item">필터 (카테고리, 기간, 가격, 인기순)</li>
+            <li class="new-item">검색 결과 리스트</li>
+          </ul>
+        </div>
+        <div class="ia-node exists">
+          <h4>Product Detail <span class="tag">Exists</span></h4>
+          <div class="node-desc">루틴 상품 상세 페이지</div>
+          <div class="screens">PRODUCT01~04</div>
+          <ul class="sub-items">
+            <li>Provider 프로필 + 소개</li>
+            <li>루틴 미리보기 (일부 공개)</li>
+            <li>카테고리/기간 태그</li>
+            <li>CTA: "내 루틴에 추가하기"</li>
+            <li class="new-item">💰 가격 표시 (추가 필요)</li>
+            <li class="new-item">⭐ 리뷰/평점 (추가 필요)</li>
+            <li class="new-item">📊 구매자 수 (추가 필요)</li>
+          </ul>
+        </div>
+        <div class="ia-node new">
+          <h4>Purchase Flow <span class="tag">New</span></h4>
+          <div class="node-desc">루틴 구매 프로세스</div>
+          <ul class="sub-items">
+            <li class="new-item">기간 선택 (1주/4주/100일)</li>
+            <li class="new-item">결제 수단 선택</li>
+            <li class="new-item">결제 확인</li>
+            <li class="new-item">구매 완료 + 일정 선택 연결</li>
+          </ul>
+        </div>
+        <div class="ia-node exists">
+          <h4>Schedule Select <span class="tag">Exists</span></h4>
+          <div class="node-desc">루틴 시작일/종료일 설정</div>
+          <div class="screens">일정선택01-01~04</div>
+          <ul class="sub-items">
+            <li>시작일 캘린더</li>
+            <li>종료일 캘린더</li>
+            <li>기간 자동 계산 안내</li>
+          </ul>
+        </div>
+        <div class="ia-node new">
+          <h4>Provider Profile <span class="tag">New</span></h4>
+          <div class="node-desc">루틴 제공자 전용 프로필 페이지</div>
+          <ul class="sub-items">
+            <li class="new-item">Provider 소개 / 경력</li>
+            <li class="new-item">제공 루틴 목록</li>
+            <li class="new-item">팔로워 수 / 총 판매량</li>
+            <li class="new-item">리뷰 모아보기</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== TAB 2: POST (COMMUNITY) ===== -->
+    <div class="ia-branch">
+      <div class="ia-branch-header">
+        <div class="tab-icon">✍️</div>
+        <div>
+          <h3>POST — 커뮤니티</h3>
+          <div class="tab-desc">루틴 인증, 소통, 동기부여의 SNS 공간</div>
+        </div>
+      </div>
+      <div class="ia-level">
+        <div class="ia-node exists">
+          <h4>Community Feed <span class="tag">Exists</span></h4>
+          <div class="node-desc">게시물 피드 (인스타그램형)</div>
+          <div class="screens">COMMUNITY01</div>
+          <ul class="sub-items">
+            <li>탭: 팔로잉 / MY TO-BE / NOW / 랭킹 / 갓생살기 / 다이어트</li>
+            <li>게시물 카드 (이미지 + 루틴 뱃지)</li>
+            <li>좋아요 / 댓글 / 관심</li>
+            <li>검색바 + QR 스캐너</li>
+          </ul>
+        </div>
+        <div class="ia-node exists">
+          <h4>Post Detail <span class="tag">Exists</span></h4>
+          <div class="node-desc">게시물 상세 보기</div>
+          <div class="screens">COMMUNITY POST01</div>
+          <ul class="sub-items">
+            <li>이미지 뷰어</li>
+            <li>연결된 루틴 뱃지</li>
+            <li>인터랙션 (좋아요/댓글/관심)</li>
+            <li class="new-item">댓글 리스트 (확장 필요)</li>
+            <li class="new-item">신고/차단 (추가 필요)</li>
+          </ul>
+        </div>
+        <div class="ia-node exists">
+          <h4>Post Create <span class="tag">Exists</span></h4>
+          <div class="node-desc">게시물 작성 플로우</div>
+          <div class="screens">COMMUNITY작성01~06</div>
+          <ul class="sub-items">
+            <li>사진 선택 (갤러리)</li>
+            <li>사진 편집/필터</li>
+            <li>제목 / 본문 / 해시태그</li>
+            <li>유형 선택 (식단관리/자기계발/운동)</li>
+            <li>루틴 연결</li>
+            <li>게시 완료</li>
+          </ul>
+        </div>
+        <div class="ia-node new">
+          <h4>User Profile View <span class="tag">New</span></h4>
+          <div class="node-desc">다른 유저 프로필 방문</div>
+          <ul class="sub-items">
+            <li class="new-item">유저 정보 / 소개</li>
+            <li class="new-item">게시물 그리드</li>
+            <li class="new-item">팔로우 버튼</li>
+            <li class="new-item">사용 중인 루틴 목록</li>
+          </ul>
+        </div>
+        <div class="ia-node new">
+          <h4>Ranking Detail <span class="tag">New</span></h4>
+          <div class="node-desc">랭킹 상세 보기</div>
+          <ul class="sub-items">
+            <li class="new-item">주간/월간 랭킹</li>
+            <li class="new-item">카테고리별 랭킹</li>
+            <li class="new-item">내 순위 확인</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== TAB 3: BOARD (DASHBOARD) ===== -->
+    <div class="ia-branch">
+      <div class="ia-branch-header">
+        <div class="tab-icon">✅</div>
+        <div>
+          <h3>BOARD — 투두 대시보드</h3>
+          <div class="tab-desc">일간/주간/월간 루틴 실행 및 관리 허브</div>
+        </div>
+      </div>
+      <div class="ia-level">
+        <div class="ia-node exists">
+          <h4>Weekly View <span class="tag">Exists</span></h4>
+          <div class="node-desc">주간 투두 리스트 (기본 뷰)</div>
+          <div class="screens">DASHBOARD01, 02-01~03</div>
+          <ul class="sub-items">
+            <li>요일 네비게이션 (Sun~Sat)</li>
+            <li>루틴 카드 (확장/접힘)</li>
+            <li>투두 아이템 체크</li>
+            <li>D-Day 카운터</li>
+            <li>"HOW TO BE 추가하기" CTA</li>
+            <li>Empty State</li>
+          </ul>
+        </div>
+        <div class="ia-node exists">
+          <h4>Monthly View <span class="tag">Exists</span></h4>
+          <div class="node-desc">월간 캘린더 뷰</div>
+          <div class="screens">DASHBOARD03-01~02</div>
+          <ul class="sub-items">
+            <li>월간 캘린더 (완료 표시)</li>
+            <li>날짜별 루틴/투두 표시</li>
+          </ul>
+        </div>
+        <div class="ia-node exists">
+          <h4>Todo Detail Settings <span class="tag">Exists</span></h4>
+          <div class="node-desc">개별 투두 상세 설정</div>
+          <div class="screens">TODO DETAIL01-01~02, 02-01~02</div>
+          <ul class="sub-items">
+            <li>시간 설정</li>
+            <li>매일 반복하기</li>
+            <li>미완료시 내일로 보내기</li>
+            <li>하위 항목 작성</li>
+            <li>복사/붙여넣기/삭제</li>
+          </ul>
+        </div>
+        <div class="ia-node exists">
+          <h4>Custom Routine Create <span class="tag">Exists</span></h4>
+          <div class="node-desc">나만의 루틴 직접 만들기</div>
+          <div class="screens">루틴 추가하기01-01~02, 02-01~03</div>
+          <ul class="sub-items">
+            <li>제목 입력</li>
+            <li>루틴 유형 (식단/자기계발/운동/자격증/학업)</li>
+            <li>기한 (1주/4주/100일/무기한)</li>
+            <li>컬러 설정</li>
+            <li>D-DAY 표시 여부</li>
+            <li>날짜 선택 → 투두 작성</li>
+          </ul>
+        </div>
+        <div class="ia-node new">
+          <h4>Progress & Stats <span class="tag">New</span></h4>
+          <div class="node-desc">루틴별 진행률 및 통계</div>
+          <ul class="sub-items">
+            <li class="new-item">루틴별 완료율 (%) 차트</li>
+            <li class="new-item">주간/월간 달성 추이</li>
+            <li class="new-item">스트릭 (연속 완료일)</li>
+            <li class="new-item">카테고리별 시간 분배</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== TAB 4: REWARD ===== -->
+    <div class="ia-branch">
+      <div class="ia-branch-header">
+        <div class="tab-icon">🏆</div>
+        <div>
+          <h3>REWARD — 보상 & 달성</h3>
+          <div class="tab-desc">동기부여 시스템: 배지, 랭킹, 보상</div>
+        </div>
+      </div>
+      <div class="ia-level">
+        <div class="ia-node new">
+          <h4>Reward Main <span class="tag">New</span></h4>
+          <div class="node-desc">보상 메인 (전체 진행 상황)</div>
+          <ul class="sub-items">
+            <li class="new-item">총 달성 루틴 수</li>
+            <li class="new-item">연속 달성일 (스트릭)</li>
+            <li class="new-item">획득 배지 요약</li>
+            <li class="new-item">현재 랭킹 요약</li>
+          </ul>
+        </div>
+        <div class="ia-node new">
+          <h4>Badge Collection <span class="tag">New</span></h4>
+          <div class="node-desc">달성 배지 컬렉션</div>
+          <ul class="sub-items">
+            <li class="new-item">획득 배지 / 미획득 배지</li>
+            <li class="new-item">배지 상세 (획득 조건, 날짜)</li>
+            <li class="new-item">배지 공유 기능</li>
+          </ul>
+        </div>
+        <div class="ia-node new">
+          <h4>Ranking Board <span class="tag">New</span></h4>
+          <div class="node-desc">유저 랭킹 보드</div>
+          <ul class="sub-items">
+            <li class="new-item">전체 / 카테고리별 랭킹</li>
+            <li class="new-item">주간 / 월간 랭킹</li>
+            <li class="new-item">내 순위 하이라이트</li>
+            <li class="new-item">친구 랭킹</li>
+          </ul>
+        </div>
+        <div class="ia-node new">
+          <h4>Challenge <span class="tag">New</span></h4>
+          <div class="node-desc">기간 한정 챌린지</div>
+          <ul class="sub-items">
+            <li class="new-item">진행 중 챌린지</li>
+            <li class="new-item">챌린지 참여/완료</li>
+            <li class="new-item">챌린지 보상</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== TAB 5: MY ===== -->
+    <div class="ia-branch">
+      <div class="ia-branch-header">
+        <div class="tab-icon">👤</div>
+        <div>
+          <h3>MY — 프로필 & 설정</h3>
+          <div class="tab-desc">개인 정보 관리, 구매 내역, 앱 설정</div>
+        </div>
+      </div>
+      <div class="ia-level">
+        <div class="ia-node new">
+          <h4>My Profile <span class="tag">New</span></h4>
+          <div class="node-desc">내 프로필 메인</div>
+          <ul class="sub-items">
+            <li class="new-item">프로필 사진 / 닉네임 / 소개</li>
+            <li class="new-item">팔로워 / 팔로잉 수</li>
+            <li class="new-item">내 게시물 그리드</li>
+            <li class="new-item">프로필 편집 버튼</li>
+          </ul>
+        </div>
+        <div class="ia-node new">
+          <h4>My Routines <span class="tag">New</span></h4>
+          <div class="node-desc">내 루틴 관리</div>
+          <ul class="sub-items">
+            <li class="new-item">진행 중 루틴</li>
+            <li class="new-item">완료된 루틴</li>
+            <li class="new-item">구매한 루틴 (구매 내역)</li>
+            <li class="new-item">직접 만든 루틴</li>
+          </ul>
+        </div>
+        <div class="ia-node new">
+          <h4>QR Code Center <span class="tag">New</span></h4>
+          <div class="node-desc">QR 코드 생성 및 관리</div>
+          <ul class="sub-items">
+            <li class="new-item">내 루틴 QR 생성</li>
+            <li class="new-item">QR 이미지 저장/공유</li>
+            <li class="new-item">QR 스캔 (카메라)</li>
+            <li class="new-item">공유 이력</li>
+          </ul>
+        </div>
+        <div class="ia-node new">
+          <h4>Settings <span class="tag">New</span></h4>
+          <div class="node-desc">앱 설정</div>
+          <ul class="sub-items">
+            <li class="new-item">알림 설정 (일정/커뮤니티/마케팅)</li>
+            <li class="new-item">계정 관리</li>
+            <li class="new-item">결제 수단 관리</li>
+            <li class="new-item">앱 정보 / 약관 / 개인정보</li>
+            <li class="new-item">고객센터 / FAQ</li>
+            <li class="new-item">로그아웃 / 회원탈퇴</li>
+          </ul>
+        </div>
+        <div class="ia-node new">
+          <h4>Following / Followers <span class="tag">New</span></h4>
+          <div class="node-desc">소셜 관계 관리</div>
+          <ul class="sub-items">
+            <li class="new-item">팔로잉 리스트</li>
+            <li class="new-item">팔로워 리스트</li>
+            <li class="new-item">Provider 팔로잉</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== GLOBAL: Notification ===== -->
+    <div class="ia-branch">
+      <div class="ia-branch-header">
+        <div class="tab-icon">🔔</div>
+        <div>
+          <h3>Global — 알림</h3>
+          <div class="tab-desc">전역 알림 시스템 (모든 탭에서 접근)</div>
+        </div>
+      </div>
+      <div class="ia-level">
+        <div class="ia-node exists">
+          <h4>Notification Center <span class="tag">Exists</span></h4>
+          <div class="node-desc">알림 목록 (일정/커뮤니티 탭)</div>
+          <div class="screens">알림01-01~03</div>
+          <ul class="sub-items">
+            <li>일정 알림 (루틴 미완료 리마인더)</li>
+            <li>커뮤니티 알림 (좋아요/댓글)</li>
+            <li>Empty State</li>
+            <li class="new-item">알림 설정 바로가기 (추가 필요)</li>
+            <li class="new-item">구매/결제 알림 (추가 필요)</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ===== SECTION 4: MISSING FLOWS ===== -->
+<div class="section">
+  <div class="section-title"><span class="num">4</span> 핵심 신규 Flow 설계 우선순위</div>
+  <p class="section-desc">비즈니스 임팩트 × 사용자 경험 기준 우선순위 정렬</p>
+
+  <div class="flow-grid">
+    <div class="flow-card critical">
+      <h3>🔐 Onboarding & Auth Flow</h3>
+      <div class="priority">P0 — Critical (서비스 진입 불가)</div>
+      <ul class="flow-steps">
+        <li data-step="1">Splash Screen</li>
+        <li data-step="2">Walkthrough (3 slides)</li>
+        <li data-step="3">Login / Sign Up 선택</li>
+        <li data-step="4">소셜 로그인 or 이메일 가입</li>
+        <li data-step="5">약관 동의</li>
+        <li data-step="6">Preference Setup (카테고리 선택)</li>
+        <li data-step="7">첫 루틴 추천 → HOME</li>
+      </ul>
+    </div>
+
+    <div class="flow-card critical">
+      <h3>💰 Purchase Flow</h3>
+      <div class="priority">P0 — Critical (수익 모델 핵심)</div>
+      <ul class="flow-steps">
+        <li data-step="1">Product Detail "추가하기" 탭</li>
+        <li data-step="2">기간 선택 (1주/4주/100일)</li>
+        <li data-step="3">가격 확인</li>
+        <li data-step="4">결제 수단 선택</li>
+        <li data-step="5">결제 완료 확인</li>
+        <li data-step="6">일정 선택 → BOARD 이동</li>
+      </ul>
+    </div>
+
+    <div class="flow-card critical">
+      <h3>👤 MY Page</h3>
+      <div class="priority">P0 — Critical (사용자 정체성)</div>
+      <ul class="flow-steps">
+        <li data-step="1">프로필 헤더 (사진/닉네임/소개)</li>
+        <li data-step="2">내 루틴 관리 (진행중/완료)</li>
+        <li data-step="3">내 게시물</li>
+        <li data-step="4">구매 내역</li>
+        <li data-step="5">설정 (알림/계정/결제)</li>
+      </ul>
+    </div>
+
+    <div class="flow-card important">
+      <h3>🏆 REWARD 탭</h3>
+      <div class="priority">P1 — Important (Retention 핵심)</div>
+      <ul class="flow-steps">
+        <li data-step="1">달성 현황 요약</li>
+        <li data-step="2">배지 컬렉션</li>
+        <li data-step="3">랭킹 보드</li>
+        <li data-step="4">챌린지 목록</li>
+      </ul>
+    </div>
+
+    <div class="flow-card important">
+      <h3>📱 QR Code 공유</h3>
+      <div class="priority">P1 — Important (IR 핵심 차별화)</div>
+      <ul class="flow-steps">
+        <li data-step="1">루틴 상세에서 "QR 생성" 탭</li>
+        <li data-step="2">QR 코드 미리보기</li>
+        <li data-step="3">이미지 저장 / SNS 공유</li>
+        <li data-step="4">QR 스캔 → 루틴 추가 (수신자)</li>
+      </ul>
+    </div>
+
+    <div class="flow-card important">
+      <h3>🔍 Search & Discovery</h3>
+      <div class="priority">P1 — Important (탐색 효율)</div>
+      <ul class="flow-steps">
+        <li data-step="1">HOME 상단 검색바</li>
+        <li data-step="2">인기/최근 검색어</li>
+        <li data-step="3">검색 결과 (루틴 + Provider)</li>
+        <li data-step="4">필터/정렬</li>
+      </ul>
+    </div>
+
+    <div class="flow-card enhancement">
+      <h3>📊 Progress & Stats</h3>
+      <div class="priority">P2 — Enhancement</div>
+      <ul class="flow-steps">
+        <li data-step="1">BOARD 내 통계 탭 추가</li>
+        <li data-step="2">루틴별 완료율 차트</li>
+        <li data-step="3">주간/월간 추이</li>
+        <li data-step="4">스트릭 표시</li>
+      </ul>
+    </div>
+
+    <div class="flow-card enhancement">
+      <h3>👨‍🏫 Provider Dashboard</h3>
+      <div class="priority">P2 — Enhancement (공급측 관리)</div>
+      <ul class="flow-steps">
+        <li data-step="1">Provider 신청 플로우</li>
+        <li data-step="2">루틴 작성/관리 도구</li>
+        <li data-step="3">수익 대시보드</li>
+        <li data-step="4">구매자 통계</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- ===== SECTION 5: SUMMARY ===== -->
+<div class="gap-section">
+  <div class="section">
+    <div class="section-title"><span class="num">5</span> IA Summary</div>
+    <p class="section-desc">전체 화면 규모 및 설계 현황 요약</p>
+
+    <table class="summary-table">
+      <thead>
+        <tr>
+          <th>영역</th>
+          <th>기존 화면</th>
+          <th>신규 필요</th>
+          <th>합계</th>
+          <th>비고</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Global (Onboarding/Auth)</td>
+          <td><span class="count">0</span></td>
+          <td><span class="count" style="color:#ff6b6b">8~10</span></td>
+          <td><span class="count">~10</span></td>
+          <td>P0 — 서비스 진입에 필수</td>
+        </tr>
+        <tr>
+          <td>HOME (루틴 스토어)</td>
+          <td><span class="count">5</span></td>
+          <td><span class="count" style="color:#ff6b6b">6~8</span></td>
+          <td><span class="count">~13</span></td>
+          <td>검색, 구매 플로우 추가 필요</td>
+        </tr>
+        <tr>
+          <td>POST (커뮤니티)</td>
+          <td><span class="count">11</span></td>
+          <td><span class="count" style="color:#ff6b6b">4~5</span></td>
+          <td><span class="count">~16</span></td>
+          <td>유저 프로필, 랭킹 상세 추가</td>
+        </tr>
+        <tr>
+          <td>BOARD (대시보드)</td>
+          <td><span class="count">15</span></td>
+          <td><span class="count" style="color:#ff6b6b">3~4</span></td>
+          <td><span class="count">~19</span></td>
+          <td>통계/진행률 보강</td>
+        </tr>
+        <tr>
+          <td>REWARD (보상)</td>
+          <td><span class="count">0</span></td>
+          <td><span class="count" style="color:#ff6b6b">6~8</span></td>
+          <td><span class="count">~8</span></td>
+          <td>P1 — Retention 핵심</td>
+        </tr>
+        <tr>
+          <td>MY (프로필/설정)</td>
+          <td><span class="count">0</span></td>
+          <td><span class="count" style="color:#ff6b6b">8~10</span></td>
+          <td><span class="count">~10</span></td>
+          <td>P0 — 사용자 정체성 필수</td>
+        </tr>
+        <tr>
+          <td>알림</td>
+          <td><span class="count">3</span></td>
+          <td><span class="count" style="color:#ff6b6b">1~2</span></td>
+          <td><span class="count">~5</span></td>
+          <td>알림 설정 보강</td>
+        </tr>
+        <tr style="background: rgba(45,212,168,0.05);">
+          <td style="font-weight:700; color:#fff;">TOTAL</td>
+          <td><span class="count" style="color:#2dd4a8">34</span></td>
+          <td><span class="count" style="color:#ff6b6b">36~47</span></td>
+          <td><span class="count" style="color:#fff">~81</span></td>
+          <td style="color:#ffd93d; font-weight:600;">현재 디자인 커버리지 약 42%</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ===== FOOTER ===== -->
+<div class="footer">
+  <p>How To Be — Service IA v1.0 | Product Consulting by Claude | 2026.02.14</p>
+  <p style="margin-top:8px;">기존 42개 화면 분석 + 36~47개 신규 화면 제안 = 총 ~81개 화면 규모의 전체 서비스 IA</p>
+</div>
+
+</body>
+</html>
