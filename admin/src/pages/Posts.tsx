@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { FileText, Eye, EyeOff, Trash2, Heart, MessageCircle } from 'lucide-react';
+import { FileText, Eye, EyeOff, Trash2, RotateCcw, Heart, MessageCircle } from 'lucide-react';
 import { apiClient } from '../api/client';
 import type { Post, PaginatedResponse } from '../types';
 import Table from '../components/ui/Table';
@@ -11,6 +11,25 @@ import Select from '../components/ui/Select';
 import Modal from '../components/ui/Modal';
 import EmptyState from '../components/ui/EmptyState';
 
+const STATUS_VARIANT: Record<string, 'success' | 'warning' | 'error'> = {
+  active: 'success',
+  hidden: 'warning',
+  deleted: 'error',
+};
+
+const STATUS_LABEL: Record<string, string> = {
+  active: '활성',
+  hidden: '숨김',
+  deleted: '삭제',
+};
+
+const CATEGORY_LABEL: Record<string, string> = {
+  review: '리뷰',
+  daily: '일상',
+  question: '질문',
+  tip: '팁',
+};
+
 export default function PostsPage() {
   const [posts, setPosts] = useState<Post[]>([]);
   const [total, setTotal] = useState(0);
@@ -20,6 +39,11 @@ export default function PostsPage() {
   const [loading, setLoading] = useState(true);
   const [detailModal, setDetailModal] = useState<Post | null>(null);
   const [actionLoading, setActionLoading] = useState(false);
+  const [confirmAction, setConfirmAction] = useState<{
+    post: Post;
+    newStatus: Post['status'];
+    label: string;
+  } | null>(null);
   const limit = 20;
 
   const loadPosts = useCallback(async () => {
@@ -58,27 +82,18 @@ export default function PostsPage() {
         prev.map((p) => (p.id === postId ? { ...p, status: newStatus } : p))
       );
       if (detailModal?.id === postId) {
-        setDetailModal((prev) => prev ? { ...prev, status: newStatus } : null);
+        setDetailModal((prev) => (prev ? { ...prev, status: newStatus } : null));
       }
     } catch {
       // error
     } finally {
       setActionLoading(false);
+      setConfirmAction(null);
     }
   };
 
   const formatDate = (dateStr: string): string => {
     return new Date(dateStr).toLocaleDateString('ko-KR');
-  };
-
-  const statusBadge = (status: Post['status']) => {
-    const map = {
-      active: { variant: 'success' as const, label: '활성' },
-      hidden: { variant: 'warning' as const, label: '숨김' },
-      deleted: { variant: 'error' as const, label: '삭제' },
-    };
-    const info = map[status];
-    return <Badge variant={info.variant}>{info.label}</Badge>;
   };
 
   const columns = [
@@ -87,60 +102,67 @@ export default function PostsPage() {
       header: '제목',
       render: (p: Post) => (
         <div>
-          <p className="font-medium text-gray-900 truncate max-w-[250px]">
-            {p.title}
-          </p>
-          <p className="text-xs text-gray-500 mt-0.5">
-            {p.user_nickname || p.user_id.slice(0, 8)}
-          </p>
+          <p className="font-medium text-gray-900 truncate max-w-[250px]">{p.title}</p>
+          {p.hashtags && p.hashtags.length > 0 && (
+            <div className="flex flex-wrap gap-1 mt-0.5">
+              {p.hashtags.slice(0, 3).map((h) => (
+                <span key={h} className="text-xs text-primary">#{h}</span>
+              ))}
+              {p.hashtags.length > 3 && (
+                <span className="text-xs text-gray-400">+{p.hashtags.length - 3}</span>
+              )}
+            </div>
+          )}
         </div>
+      ),
+    },
+    {
+      key: 'user',
+      header: '작성자',
+      render: (p: Post) => (
+        <span className="text-sm text-gray-600">
+          {p.user_nickname || p.user_id.slice(0, 8)}
+        </span>
       ),
     },
     {
       key: 'category',
       header: '카테고리',
-      render: (p: Post) => p.category ? <Badge variant="default">{p.category}</Badge> : '-',
+      render: (p: Post) =>
+        p.category ? (
+          <Badge variant="default">{CATEGORY_LABEL[p.category] || p.category}</Badge>
+        ) : (
+          '-'
+        ),
     },
     {
-      key: 'hashtags',
-      header: '해시태그',
+      key: 'likes',
+      header: '좋아요',
       render: (p: Post) => (
-        <div className="flex flex-wrap gap-1">
-          {p.hashtags?.slice(0, 3).map((h) => (
-            <span key={h} className="text-xs text-primary">#{h}</span>
-          ))}
-        </div>
+        <span className="flex items-center gap-1 text-sm text-gray-500">
+          <Heart className="w-3.5 h-3.5 text-red-400" />
+          {p.like_count}
+        </span>
       ),
     },
     {
-      key: 'engagement',
-      header: '반응',
+      key: 'comments',
+      header: '댓글',
       render: (p: Post) => (
-        <div className="flex items-center gap-3 text-sm text-gray-500">
-          <span className="flex items-center gap-1">
-            <Heart className="w-3.5 h-3.5" />
-            {p.like_count}
-          </span>
-          <span className="flex items-center gap-1">
-            <MessageCircle className="w-3.5 h-3.5" />
-            {p.comment_count}
-          </span>
-        </div>
-      ),
-    },
-    {
-      key: 'images',
-      header: '이미지',
-      render: (p: Post) => (
-        <span className="text-sm text-gray-500">
-          {p.image_urls?.length || 0}장
+        <span className="flex items-center gap-1 text-sm text-gray-500">
+          <MessageCircle className="w-3.5 h-3.5" />
+          {p.comment_count}
         </span>
       ),
     },
     {
       key: 'status',
       header: '상태',
-      render: (p: Post) => statusBadge(p.status),
+      render: (p: Post) => (
+        <Badge variant={STATUS_VARIANT[p.status]}>
+          {STATUS_LABEL[p.status]}
+        </Badge>
+      ),
     },
     {
       key: 'created_at',
@@ -149,14 +171,14 @@ export default function PostsPage() {
     },
     {
       key: 'actions',
-      header: '',
+      header: '액션',
       render: (p: Post) => (
         <div className="flex items-center gap-1">
           {p.status === 'active' && (
             <button
               onClick={(e) => {
                 e.stopPropagation();
-                handleStatusChange(p.id, 'hidden');
+                setConfirmAction({ post: p, newStatus: 'hidden', label: '숨기기' });
               }}
               className="p-1.5 rounded text-gray-400 hover:text-yellow-500 hover:bg-yellow-50 transition-colors"
               title="숨기기"
@@ -168,19 +190,31 @@ export default function PostsPage() {
             <button
               onClick={(e) => {
                 e.stopPropagation();
-                handleStatusChange(p.id, 'active');
+                setConfirmAction({ post: p, newStatus: 'active', label: '복원' });
               }}
               className="p-1.5 rounded text-gray-400 hover:text-green-500 hover:bg-green-50 transition-colors"
-              title="게시"
+              title="복원"
             >
-              <Eye className="w-4 h-4" />
+              <RotateCcw className="w-4 h-4" />
+            </button>
+          )}
+          {p.status === 'deleted' && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setConfirmAction({ post: p, newStatus: 'active', label: '복원' });
+              }}
+              className="p-1.5 rounded text-gray-400 hover:text-green-500 hover:bg-green-50 transition-colors"
+              title="복원"
+            >
+              <RotateCcw className="w-4 h-4" />
             </button>
           )}
           {p.status !== 'deleted' && (
             <button
               onClick={(e) => {
                 e.stopPropagation();
-                handleStatusChange(p.id, 'deleted');
+                setConfirmAction({ post: p, newStatus: 'deleted', label: '삭제' });
               }}
               className="p-1.5 rounded text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors"
               title="삭제"
@@ -197,12 +231,16 @@ export default function PostsPage() {
 
   return (
     <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <h1 className="text-xl font-bold text-gray-900">게시물 관리</h1>
+      </div>
+
       {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-3">
         <SearchInput
           value={search}
           onSearch={handleSearch}
-          placeholder="제목 또는 작성자 검색..."
+          placeholder="제목 또는 내용으로 검색..."
           className="w-full sm:w-80"
         />
         <Select
@@ -246,7 +284,7 @@ export default function PostsPage() {
       {/* Pagination */}
       <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
 
-      {/* Detail Modal */}
+      {/* Post Detail Modal */}
       <Modal
         isOpen={!!detailModal}
         onClose={() => setDetailModal(null)}
@@ -272,7 +310,17 @@ export default function PostsPage() {
                   loading={actionLoading}
                   onClick={() => handleStatusChange(detailModal.id, 'active')}
                 >
-                  게시
+                  복원
+                </Button>
+              )}
+              {detailModal.status === 'deleted' && (
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  loading={actionLoading}
+                  onClick={() => handleStatusChange(detailModal.id, 'active')}
+                >
+                  복원
                 </Button>
               )}
               {detailModal.status !== 'deleted' && (
@@ -296,10 +344,13 @@ export default function PostsPage() {
                 <h4 className="font-semibold text-gray-900">{detailModal.title}</h4>
                 <p className="text-sm text-gray-500 mt-0.5">
                   {detailModal.user_nickname || detailModal.user_id.slice(0, 8)} &middot;{' '}
+                  {detailModal.category ? (CATEGORY_LABEL[detailModal.category] || detailModal.category) : ''} &middot;{' '}
                   {formatDate(detailModal.created_at)}
                 </p>
               </div>
-              {statusBadge(detailModal.status)}
+              <Badge variant={STATUS_VARIANT[detailModal.status]}>
+                {STATUS_LABEL[detailModal.status]}
+              </Badge>
             </div>
 
             {detailModal.content && (
@@ -331,7 +382,7 @@ export default function PostsPage() {
 
             <div className="flex items-center gap-4 text-sm text-gray-500 pt-2 border-t border-gray-100">
               <span className="flex items-center gap-1">
-                <Heart className="w-4 h-4" />
+                <Heart className="w-4 h-4 text-red-400" />
                 좋아요 {detailModal.like_count}
               </span>
               <span className="flex items-center gap-1">
@@ -339,6 +390,44 @@ export default function PostsPage() {
                 댓글 {detailModal.comment_count}
               </span>
             </div>
+          </div>
+        )}
+      </Modal>
+
+      {/* Status Change Confirmation Modal */}
+      <Modal
+        isOpen={!!confirmAction}
+        onClose={() => setConfirmAction(null)}
+        title="게시물 상태 변경"
+        size="sm"
+        actions={
+          confirmAction && (
+            <>
+              <Button variant="secondary" onClick={() => setConfirmAction(null)}>
+                취소
+              </Button>
+              <Button
+                variant={confirmAction.newStatus === 'deleted' ? 'danger' : 'primary'}
+                loading={actionLoading}
+                onClick={() =>
+                  handleStatusChange(confirmAction.post.id, confirmAction.newStatus)
+                }
+              >
+                {confirmAction.label}
+              </Button>
+            </>
+          )
+        }
+      >
+        {confirmAction && (
+          <div className="space-y-3">
+            <p className="text-sm text-gray-600">
+              <strong>"{confirmAction.post.title}"</strong> 게시물을{' '}
+              <strong>{STATUS_LABEL[confirmAction.newStatus]}</strong> 상태로 변경하시겠습니까?
+            </p>
+            {confirmAction.newStatus === 'deleted' && (
+              <p className="text-xs text-red-500">삭제된 게시물은 사용자에게 표시되지 않습니다.</p>
+            )}
           </div>
         )}
       </Modal>

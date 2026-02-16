@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Settings as SettingsIcon, Plus, Edit2, Trash2, Shield, ShieldCheck } from 'lucide-react';
 import { apiClient } from '../api/client';
+import { useAuthStore } from '../stores/authStore';
 import type { AdminUser } from '../types';
 import Table from '../components/ui/Table';
 import Badge from '../components/ui/Badge';
@@ -25,21 +26,23 @@ const emptyForm: AdminFormData = {
 };
 
 export default function SettingsPage() {
+  const { admin: currentAdmin } = useAuthStore();
   const [admins, setAdmins] = useState<AdminUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [formModal, setFormModal] = useState(false);
-  const [editId, setEditId] = useState<string | null>(null);
+  const [editTarget, setEditTarget] = useState<AdminUser | null>(null);
   const [form, setForm] = useState<AdminFormData>(emptyForm);
+  const [editActive, setEditActive] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [deleteModal, setDeleteModal] = useState<AdminUser | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<AdminUser | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const loadAdmins = useCallback(async () => {
     setLoading(true);
     try {
-      const data = await apiClient.get<{ data: AdminUser[] }>('/admins');
-      setAdmins(data.data || []);
+      const data = await apiClient.get<AdminUser[] | { data: AdminUser[] }>('/admins');
+      setAdmins(Array.isArray(data) ? data : data.data || []);
     } catch {
       setAdmins([]);
     } finally {
@@ -51,21 +54,25 @@ export default function SettingsPage() {
     loadAdmins();
   }, [loadAdmins]);
 
+  const isCurrentAdmin = (admin: AdminUser) => currentAdmin?.id === admin.id;
+
   const openCreateModal = () => {
-    setEditId(null);
+    setEditTarget(null);
     setForm(emptyForm);
+    setEditActive(true);
     setErrors({});
     setFormModal(true);
   };
 
   const openEditModal = (admin: AdminUser) => {
-    setEditId(admin.id);
+    setEditTarget(admin);
     setForm({
       email: admin.email,
       name: admin.name,
       password: '',
       role: admin.role,
     });
+    setEditActive(admin.is_active);
     setErrors({});
     setFormModal(true);
   };
@@ -74,7 +81,7 @@ export default function SettingsPage() {
     const newErrors: Record<string, string> = {};
     if (!form.email.trim()) newErrors.email = '이메일을 입력하세요.';
     if (!form.name.trim()) newErrors.name = '이름을 입력하세요.';
-    if (!editId && !form.password.trim()) newErrors.password = '비밀번호를 입력하세요.';
+    if (!editTarget && !form.password.trim()) newErrors.password = '비밀번호를 입력하세요.';
     if (form.password && form.password.length < 6)
       newErrors.password = '비밀번호는 6자 이상이어야 합니다.';
     setErrors(newErrors);
@@ -86,17 +93,21 @@ export default function SettingsPage() {
 
     setSaving(true);
     try {
-      const payload: Record<string, string> = {
-        email: form.email,
-        name: form.name,
-        role: form.role,
-      };
-      if (form.password) payload.password = form.password;
-
-      if (editId) {
-        await apiClient.put(`/admins/${editId}`, payload);
+      if (editTarget) {
+        const payload: Record<string, unknown> = {
+          name: form.name,
+          role: form.role,
+          is_active: editActive,
+        };
+        if (form.password) payload.password = form.password;
+        await apiClient.put(`/admins/${editTarget.id}`, payload);
       } else {
-        await apiClient.post('/admins', payload);
+        await apiClient.post('/admins', {
+          email: form.email,
+          password: form.password,
+          name: form.name,
+          role: form.role,
+        });
       }
 
       setFormModal(false);
@@ -109,11 +120,11 @@ export default function SettingsPage() {
   };
 
   const handleDelete = async () => {
-    if (!deleteModal) return;
+    if (!deleteTarget) return;
     setDeleting(true);
     try {
-      await apiClient.delete(`/admins/${deleteModal.id}`);
-      setDeleteModal(null);
+      await apiClient.delete(`/admins/${deleteTarget.id}`);
+      setDeleteTarget(null);
       loadAdmins();
     } catch {
       // error
@@ -153,7 +164,12 @@ export default function SettingsPage() {
           <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary text-sm font-semibold">
             {a.name.charAt(0)}
           </div>
-          <span className="font-medium text-gray-900">{a.name}</span>
+          <div>
+            <span className="font-medium text-gray-900">{a.name}</span>
+            {isCurrentAdmin(a) && (
+              <span className="ml-2 text-xs text-primary font-normal">(나)</span>
+            )}
+          </div>
         </div>
       ),
     },
@@ -184,12 +200,12 @@ export default function SettingsPage() {
     },
     {
       key: 'created_at',
-      header: '생성일',
+      header: '가입일',
       render: (a: AdminUser) => formatDate(a.created_at),
     },
     {
       key: 'actions',
-      header: '',
+      header: '액션',
       render: (a: AdminUser) => (
         <div className="flex items-center gap-1">
           <button
@@ -202,16 +218,18 @@ export default function SettingsPage() {
           >
             <Edit2 className="w-4 h-4" />
           </button>
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              setDeleteModal(a);
-            }}
-            className="p-1.5 rounded text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors"
-            title="삭제"
-          >
-            <Trash2 className="w-4 h-4" />
-          </button>
+          {!isCurrentAdmin(a) && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setDeleteTarget(a);
+              }}
+              className="p-1.5 rounded text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors"
+              title="삭제"
+            >
+              <Trash2 className="w-4 h-4" />
+            </button>
+          )}
         </div>
       ),
     },
@@ -221,14 +239,17 @@ export default function SettingsPage() {
     <div className="space-y-4">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <div className="text-sm text-gray-500">
-          총 <span className="font-semibold text-gray-700">{admins.length}</span>명의 관리자
+        <div>
+          <h1 className="text-xl font-bold text-gray-900">관리자 설정</h1>
+          <p className="text-sm text-gray-500 mt-1">
+            총 <span className="font-semibold text-gray-700">{admins.length}</span>명의 관리자
+          </p>
         </div>
         <Button
           icon={<Plus className="w-4 h-4" />}
           onClick={openCreateModal}
         >
-          관리자 추가
+          새 관리자 추가
         </Button>
       </div>
 
@@ -260,14 +281,14 @@ export default function SettingsPage() {
       <Modal
         isOpen={formModal}
         onClose={() => setFormModal(false)}
-        title={editId ? '관리자 수정' : '관리자 추가'}
+        title={editTarget ? '관리자 수정' : '새 관리자 추가'}
         actions={
           <>
             <Button variant="secondary" onClick={() => setFormModal(false)}>
               취소
             </Button>
             <Button onClick={handleSave} loading={saving}>
-              {editId ? '수정' : '추가'}
+              {editTarget ? '수정' : '추가'}
             </Button>
           </>
         }
@@ -287,14 +308,14 @@ export default function SettingsPage() {
             onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
             placeholder="admin@htb.com"
             error={errors.email}
-            disabled={!!editId}
+            disabled={!!editTarget}
           />
           <Input
-            label={editId ? '비밀번호 (변경 시 입력)' : '비밀번호'}
+            label={editTarget ? '비밀번호 (변경 시 입력)' : '비밀번호'}
             type="password"
             value={form.password}
             onChange={(e) => setForm((f) => ({ ...f, password: e.target.value }))}
-            placeholder={editId ? '변경하지 않으려면 비워두세요' : '비밀번호'}
+            placeholder={editTarget ? '변경하지 않으려면 비워두세요' : '6자 이상'}
             error={errors.password}
           />
           <Select
@@ -307,22 +328,45 @@ export default function SettingsPage() {
               }))
             }
             options={[
-              { value: 'super_admin', label: '최고 관리자' },
               { value: 'sales', label: '영업 담당' },
+              { value: 'super_admin', label: '최고 관리자' },
             ]}
           />
+          {editTarget && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                계정 상태
+              </label>
+              <label className="flex items-center gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={editActive}
+                  onChange={(e) => setEditActive(e.target.checked)}
+                  className="w-5 h-5 rounded border-gray-300 text-primary focus:ring-primary"
+                />
+                <span className="text-sm text-gray-700">
+                  {editActive ? '활성' : '비활성'}
+                  {!editActive && (
+                    <span className="text-xs text-gray-400 ml-1">
+                      (비활성 상태에서는 로그인할 수 없습니다)
+                    </span>
+                  )}
+                </span>
+              </label>
+            </div>
+          )}
         </div>
       </Modal>
 
       {/* Delete Modal */}
       <Modal
-        isOpen={!!deleteModal}
-        onClose={() => setDeleteModal(null)}
+        isOpen={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
         title="관리자 삭제"
         size="sm"
         actions={
           <>
-            <Button variant="secondary" onClick={() => setDeleteModal(null)}>
+            <Button variant="secondary" onClick={() => setDeleteTarget(null)}>
               취소
             </Button>
             <Button variant="danger" onClick={handleDelete} loading={deleting}>
@@ -331,10 +375,10 @@ export default function SettingsPage() {
           </>
         }
       >
-        {deleteModal && (
+        {deleteTarget && (
           <div className="space-y-3">
             <p className="text-sm text-gray-600">
-              <strong>{deleteModal.name}</strong> 관리자를 삭제하시겠습니까?
+              <strong>{deleteTarget.name}</strong> ({deleteTarget.email}) 관리자를 삭제하시겠습니까?
             </p>
             <p className="text-xs text-red-500">
               이 작업은 되돌릴 수 없습니다.

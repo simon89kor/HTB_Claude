@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, BookOpen, Star } from 'lucide-react';
+import { Plus, BookOpen, Star, Eye, EyeOff, Edit2, Trash2, Loader2 } from 'lucide-react';
 import { apiClient } from '../api/client';
 import type { Routine, PaginatedResponse } from '../types';
 import { CATEGORIES } from '../types';
@@ -10,6 +10,7 @@ import Button from '../components/ui/Button';
 import Pagination from '../components/ui/Pagination';
 import SearchInput from '../components/ui/SearchInput';
 import Select from '../components/ui/Select';
+import Modal from '../components/ui/Modal';
 import EmptyState from '../components/ui/EmptyState';
 
 export default function RoutinesPage() {
@@ -21,6 +22,9 @@ export default function RoutinesPage() {
   const [categoryFilter, setCategoryFilter] = useState('');
   const [publishedFilter, setPublishedFilter] = useState('');
   const [loading, setLoading] = useState(true);
+  const [publishToggling, setPublishToggling] = useState<string | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<Routine | null>(null);
+  const [deleting, setDeleting] = useState(false);
   const limit = 20;
 
   const loadRoutines = useCallback(async () => {
@@ -52,12 +56,40 @@ export default function RoutinesPage() {
     setPage(1);
   };
 
-  const formatCurrency = (amount: number): string => {
-    return new Intl.NumberFormat('ko-KR').format(amount) + '원';
+  const handlePublishToggle = async (routine: Routine) => {
+    if (publishToggling) return;
+    setPublishToggling(routine.id);
+    try {
+      await apiClient.put(`/routines/${routine.id}/publish`);
+      setRoutines((prev) =>
+        prev.map((r) =>
+          r.id === routine.id ? { ...r, is_published: !r.is_published } : r
+        )
+      );
+    } catch {
+      // error
+    } finally {
+      setPublishToggling(null);
+    }
   };
 
-  const formatDate = (dateStr: string): string => {
-    return new Date(dateStr).toLocaleDateString('ko-KR');
+  const handleDelete = async () => {
+    if (!deleteTarget || deleting) return;
+    setDeleting(true);
+    try {
+      await apiClient.delete(`/routines/${deleteTarget.id}`);
+      setRoutines((prev) => prev.filter((r) => r.id !== deleteTarget.id));
+      setTotal((prev) => prev - 1);
+      setDeleteTarget(null);
+    } catch {
+      // error
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+  const formatCurrency = (amount: number): string => {
+    return new Intl.NumberFormat('ko-KR').format(amount) + '원';
   };
 
   const getCategoryLabel = (key: string) => {
@@ -68,7 +100,7 @@ export default function RoutinesPage() {
   const columns = [
     {
       key: 'title',
-      header: '루틴명',
+      header: '제목',
       render: (r: Routine) => (
         <div className="flex items-center gap-3">
           {r.image_url ? (
@@ -82,13 +114,17 @@ export default function RoutinesPage() {
               <BookOpen className="w-5 h-5 text-primary" />
             </div>
           )}
-          <div>
-            <p className="font-medium text-gray-900 truncate max-w-[200px]">
-              {r.title}
-            </p>
-            <p className="text-xs text-gray-500">{r.provider_name || '-'}</p>
-          </div>
+          <span className="font-medium text-gray-900 truncate max-w-[200px]">
+            {r.title}
+          </span>
         </div>
+      ),
+    },
+    {
+      key: 'provider',
+      header: '제공자',
+      render: (r: Routine) => (
+        <span className="text-sm text-gray-600">{r.provider_name || '-'}</span>
       ),
     },
     {
@@ -99,13 +135,13 @@ export default function RoutinesPage() {
       ),
     },
     {
-      key: 'price',
-      header: '가격 (4주)',
-      render: (r: Routine) => formatCurrency(r.price_4week),
+      key: 'price_1week',
+      header: '가격(1주)',
+      render: (r: Routine) => formatCurrency(r.price_1week),
     },
     {
       key: 'purchase_count',
-      header: '구매수',
+      header: '판매수',
       render: (r: Routine) => r.purchase_count.toLocaleString(),
     },
     {
@@ -123,14 +159,54 @@ export default function RoutinesPage() {
       header: '상태',
       render: (r: Routine) => (
         <Badge variant={r.is_published ? 'success' : 'default'}>
-          {r.is_published ? '게시중' : '미게시'}
+          {r.is_published ? '공개' : '비공개'}
         </Badge>
       ),
     },
     {
-      key: 'created_at',
-      header: '등록일',
-      render: (r: Routine) => formatDate(r.created_at),
+      key: 'actions',
+      header: '액션',
+      render: (r: Routine) => (
+        <div className="flex items-center gap-1">
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              handlePublishToggle(r);
+            }}
+            className="p-1.5 rounded text-gray-400 hover:text-blue-500 hover:bg-blue-50 transition-colors"
+            title={r.is_published ? '비공개로 변경' : '공개로 변경'}
+            disabled={publishToggling === r.id}
+          >
+            {publishToggling === r.id ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : r.is_published ? (
+              <EyeOff className="w-4 h-4" />
+            ) : (
+              <Eye className="w-4 h-4" />
+            )}
+          </button>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              navigate(`/routines/${r.id}/edit`);
+            }}
+            className="p-1.5 rounded text-gray-400 hover:text-primary hover:bg-primary/10 transition-colors"
+            title="편집"
+          >
+            <Edit2 className="w-4 h-4" />
+          </button>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setDeleteTarget(r);
+            }}
+            className="p-1.5 rounded text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors"
+            title="삭제"
+          >
+            <Trash2 className="w-4 h-4" />
+          </button>
+        </div>
+      ),
     },
   ];
 
@@ -144,7 +220,7 @@ export default function RoutinesPage() {
           <SearchInput
             value={search}
             onSearch={handleSearch}
-            placeholder="루틴명 또는 제공자 검색..."
+            placeholder="루틴 제목으로 검색..."
             className="w-full sm:w-80"
           />
           <Select
@@ -162,8 +238,8 @@ export default function RoutinesPage() {
           />
           <Select
             options={[
-              { value: 'true', label: '게시중' },
-              { value: 'false', label: '미게시' },
+              { value: 'true', label: '공개' },
+              { value: 'false', label: '비공개' },
             ]}
             placeholder="전체 상태"
             value={publishedFilter}
@@ -178,7 +254,7 @@ export default function RoutinesPage() {
           icon={<Plus className="w-4 h-4" />}
           onClick={() => navigate('/routines/new')}
         >
-          루틴 등록
+          새 루틴 등록
         </Button>
       </div>
 
@@ -198,7 +274,7 @@ export default function RoutinesPage() {
               icon={<Plus className="w-4 h-4" />}
               onClick={() => navigate('/routines/new')}
             >
-              루틴 등록
+              새 루틴 등록
             </Button>
           }
         />
@@ -214,6 +290,35 @@ export default function RoutinesPage() {
 
       {/* Pagination */}
       <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
+
+      {/* Delete Confirmation Modal */}
+      <Modal
+        isOpen={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        title="루틴 삭제"
+        size="sm"
+        actions={
+          <>
+            <Button variant="secondary" onClick={() => setDeleteTarget(null)}>
+              취소
+            </Button>
+            <Button variant="danger" onClick={handleDelete} loading={deleting}>
+              삭제
+            </Button>
+          </>
+        }
+      >
+        {deleteTarget && (
+          <div className="space-y-3">
+            <p className="text-sm text-gray-600">
+              <strong>"{deleteTarget.title}"</strong> 루틴을 삭제하시겠습니까?
+            </p>
+            <p className="text-xs text-red-500">
+              이 작업은 되돌릴 수 없습니다. 관련된 모든 데이터가 삭제됩니다.
+            </p>
+          </div>
+        )}
+      </Modal>
     </div>
   );
 }

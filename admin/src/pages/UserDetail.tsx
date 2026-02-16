@@ -1,6 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Mail, Calendar, User as UserIcon } from 'lucide-react';
+import {
+  ArrowLeft,
+  Mail,
+  Calendar,
+  User as UserIcon,
+  ShoppingBag,
+  DollarSign,
+  Activity,
+} from 'lucide-react';
 import { apiClient } from '../api/client';
 import type { User, Purchase } from '../types';
 import Button from '../components/ui/Button';
@@ -9,12 +17,60 @@ import Card from '../components/ui/Card';
 import Table from '../components/ui/Table';
 import Modal from '../components/ui/Modal';
 import Select from '../components/ui/Select';
+import StatCard from '../components/ui/StatCard';
+
+interface UserDetailData {
+  user: User;
+  purchases: Purchase[];
+  stats: {
+    totalPurchases: number;
+    totalSpent: number;
+    activeRoutines: number;
+  };
+}
+
+const STATUS_LABEL: Record<string, string> = {
+  active: '활성',
+  suspended: '정지',
+  banned: '차단',
+};
+
+const STATUS_VARIANT: Record<string, 'success' | 'warning' | 'error'> = {
+  active: 'success',
+  suspended: 'warning',
+  banned: 'error',
+};
+
+const PURCHASE_STATUS_VARIANT: Record<string, 'success' | 'warning' | 'error'> = {
+  pending: 'warning',
+  completed: 'success',
+  refunded: 'error',
+};
+
+const PURCHASE_STATUS_LABEL: Record<string, string> = {
+  pending: '대기중',
+  completed: '완료',
+  refunded: '환불',
+};
+
+const PERIOD_LABEL: Record<string, string> = {
+  '1week': '1주',
+  '4week': '4주',
+  '100days': '100일',
+};
+
+const CATEGORY_LABEL: Record<string, string> = {
+  exercise: '운동',
+  diet: '식단관리',
+  selfdev: '자기계발',
+  cert: '자격증',
+  study: '학업',
+};
 
 export default function UserDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const [user, setUser] = useState<User | null>(null);
-  const [purchases, setPurchases] = useState<Purchase[]>([]);
+  const [data, setData] = useState<UserDetailData | null>(null);
   const [loading, setLoading] = useState(true);
   const [statusModal, setStatusModal] = useState(false);
   const [newStatus, setNewStatus] = useState<string>('');
@@ -27,15 +83,10 @@ export default function UserDetail() {
   const loadUser = async (userId: string) => {
     setLoading(true);
     try {
-      const [userData, purchasesData] = await Promise.all([
-        apiClient.get<User>(`/users/${userId}`),
-        apiClient.get<{ data: Purchase[] }>(`/users/${userId}/purchases`),
-      ]);
-      setUser(userData);
-      setPurchases(purchasesData.data || []);
+      const result = await apiClient.get<UserDetailData>(`/users/${userId}`);
+      setData(result);
     } catch {
-      setUser(null);
-      setPurchases([]);
+      setData(null);
     } finally {
       setLoading(false);
     }
@@ -46,10 +97,17 @@ export default function UserDetail() {
     setSaving(true);
     try {
       await apiClient.put(`/users/${id}/status`, { status: newStatus });
-      setUser((prev) => prev ? { ...prev, status: newStatus as User['status'] } : null);
+      setData((prev) =>
+        prev
+          ? {
+              ...prev,
+              user: { ...prev.user, status: newStatus as User['status'] },
+            }
+          : null
+      );
       setStatusModal(false);
     } catch {
-      // error handling
+      // error
     } finally {
       setSaving(false);
     }
@@ -72,49 +130,49 @@ export default function UserDetail() {
     }).format(amount);
   };
 
-  const statusBadge = (status: User['status']) => {
-    const map = {
-      active: { variant: 'success' as const, label: '활성' },
-      suspended: { variant: 'warning' as const, label: '정지' },
-      banned: { variant: 'error' as const, label: '차단' },
-    };
-    const info = map[status];
-    return <Badge variant={info.variant}>{info.label}</Badge>;
-  };
-
-  const purchaseStatusBadge = (status: Purchase['status']) => {
-    const map = {
-      pending: { variant: 'warning' as const, label: '대기중' },
-      completed: { variant: 'success' as const, label: '완료' },
-      refunded: { variant: 'error' as const, label: '환불' },
-    };
-    const info = map[status];
-    return <Badge variant={info.variant}>{info.label}</Badge>;
-  };
-
   const purchaseColumns = [
     {
       key: 'routine_title',
       header: '루틴',
-      render: (p: Purchase) => p.routine_title || p.routine_id.slice(0, 8),
+      render: (p: Purchase) => (
+        <span className="font-medium">{p.routine_title || p.routine_id.slice(0, 8)}</span>
+      ),
     },
     {
       key: 'period',
       header: '기간',
-      render: (p: Purchase) => {
-        const map = { '1week': '1주', '4week': '4주', '100days': '100일' };
-        return map[p.period];
-      },
+      render: (p: Purchase) => PERIOD_LABEL[p.period] || p.period,
     },
     {
       key: 'amount',
       header: '금액',
-      render: (p: Purchase) => formatCurrency(p.amount),
+      render: (p: Purchase) => (
+        <span className="font-medium">{formatCurrency(p.amount)}</span>
+      ),
     },
     {
       key: 'status',
       header: '상태',
-      render: (p: Purchase) => purchaseStatusBadge(p.status),
+      render: (p: Purchase) => (
+        <Badge variant={PURCHASE_STATUS_VARIANT[p.status]}>
+          {PURCHASE_STATUS_LABEL[p.status]}
+        </Badge>
+      ),
+    },
+    {
+      key: 'payment_method',
+      header: '결제방법',
+      render: (p: Purchase) => p.payment_method || '-',
+    },
+    {
+      key: 'started_at',
+      header: '시작일',
+      render: (p: Purchase) => formatDate(p.started_at),
+    },
+    {
+      key: 'ends_at',
+      header: '종료일',
+      render: (p: Purchase) => formatDate(p.ends_at),
     },
     {
       key: 'created_at',
@@ -136,7 +194,7 @@ export default function UserDetail() {
     );
   }
 
-  if (!user) {
+  if (!data) {
     return (
       <div className="text-center py-12">
         <p className="text-gray-500">사용자를 찾을 수 없습니다.</p>
@@ -146,6 +204,8 @@ export default function UserDetail() {
       </div>
     );
   }
+
+  const { user, purchases, stats } = data;
 
   return (
     <div className="space-y-6">
@@ -178,7 +238,9 @@ export default function UserDetail() {
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-3 mb-2">
               <h2 className="text-xl font-bold text-gray-900">{user.nickname}</h2>
-              {statusBadge(user.status)}
+              <Badge variant={STATUS_VARIANT[user.status]}>
+                {STATUS_LABEL[user.status]}
+              </Badge>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
@@ -192,7 +254,12 @@ export default function UserDetail() {
               </div>
               <div className="flex items-center gap-2 text-gray-500">
                 <UserIcon className="w-4 h-4" />
-                성별: {user.gender === 'male' ? '남성' : user.gender === 'female' ? '여성' : '미설정'}
+                성별:{' '}
+                {user.gender === 'male'
+                  ? '남성'
+                  : user.gender === 'female'
+                  ? '여성'
+                  : '미설정'}
               </div>
               {user.birth_date && (
                 <div className="flex items-center gap-2 text-gray-500">
@@ -211,7 +278,9 @@ export default function UserDetail() {
             {user.preferences && user.preferences.length > 0 && (
               <div className="flex flex-wrap gap-2 mt-3">
                 {user.preferences.map((p) => (
-                  <Badge key={p} variant="info" size="sm">{p}</Badge>
+                  <Badge key={p} variant="info" size="sm">
+                    {CATEGORY_LABEL[p] || p}
+                  </Badge>
                 ))}
               </div>
             )}
@@ -233,13 +302,58 @@ export default function UserDetail() {
         </div>
       </Card>
 
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <Card>
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center">
+              <ShoppingBag className="w-5 h-5 text-blue-600" />
+            </div>
+            <div>
+              <p className="text-xs text-gray-500">총 구매 수</p>
+              <p className="text-xl font-bold text-gray-900">{stats.totalPurchases}</p>
+            </div>
+          </div>
+        </Card>
+        <Card>
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-lg bg-green-50 flex items-center justify-center">
+              <DollarSign className="w-5 h-5 text-green-600" />
+            </div>
+            <div>
+              <p className="text-xs text-gray-500">총 결제 금액</p>
+              <p className="text-xl font-bold text-gray-900">
+                {formatCurrency(stats.totalSpent)}
+              </p>
+            </div>
+          </div>
+        </Card>
+        <Card>
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-lg bg-purple-50 flex items-center justify-center">
+              <Activity className="w-5 h-5 text-purple-600" />
+            </div>
+            <div>
+              <p className="text-xs text-gray-500">활성 루틴</p>
+              <p className="text-xl font-bold text-gray-900">{stats.activeRoutines}</p>
+            </div>
+          </div>
+        </Card>
+      </div>
+
       {/* Purchase History */}
       <Card title="구매 내역" noPadding>
-        <Table
-          columns={purchaseColumns}
-          data={purchases}
-          rowKey={(p) => p.id}
-        />
+        {purchases.length === 0 ? (
+          <div className="py-12 text-center text-sm text-gray-400">
+            구매 내역이 없습니다.
+          </div>
+        ) : (
+          <Table
+            columns={purchaseColumns}
+            data={purchases}
+            rowKey={(p) => p.id}
+          />
+        )}
       </Card>
 
       {/* Status Change Modal */}
