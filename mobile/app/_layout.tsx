@@ -2,9 +2,14 @@ import { useFonts } from 'expo-font';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
+import { Platform, View } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { useAuthStore } from '@/src/stores/authStore';
+
+// On web, GestureHandlerRootView can interfere with pointer events.
+// Use a plain View wrapper on web; GestureHandlerRootView on native.
+const RootContainer = Platform.OS === 'web' ? View : GestureHandlerRootView;
 
 export { ErrorBoundary } from 'expo-router';
 
@@ -55,7 +60,7 @@ export default function RootLayout() {
   }
 
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
+    <RootContainer style={{ flex: 1 }}>
       <StatusBar style="dark" />
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="(auth)" />
@@ -64,6 +69,6 @@ export default function RootLayout() {
         <Stack.Screen name="routine/[id]" options={{ headerShown: false }} />
         <Stack.Screen name="purchase/[id]" options={{ headerShown: false, presentation: 'modal' }} />
       </Stack>
-    </GestureHandlerRootView>
+    </RootContainer>
   );
 }

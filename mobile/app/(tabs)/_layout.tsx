@@ -1,4 +1,5 @@
 import { Tabs } from 'expo-router';
+import { Platform } from 'react-native';
 import { Home, PenSquare, CheckSquare, Trophy, User } from 'lucide-react-native';
 import { colors, bottomNav } from '@/src/theme/tokens';
 
@@ -11,10 +12,17 @@ export default function TabLayout() {
         tabBarInactiveTintColor: bottomNav.inactiveColor,
         tabBarStyle: {
           backgroundColor: bottomNav.background,
-          height: bottomNav.height,
+          height: bottomNav.height + (Platform.OS === 'web' ? 8 : 0),
           borderTopWidth: 0,
-          paddingBottom: 8,
+          paddingBottom: Platform.OS === 'web' ? 12 : 8,
           paddingTop: 8,
+          // Ensure tab bar is visible and not cut off on web
+          ...(Platform.OS === 'web'
+            ? {
+                position: 'relative' as const,
+                flexShrink: 0,
+              }
+            : {}),
         },
         tabBarLabelStyle: {
           fontSize: 10,
