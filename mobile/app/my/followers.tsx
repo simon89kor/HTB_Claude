@@ -4,6 +4,8 @@ import {
   Text,
   StyleSheet,
   FlatList,
+  Pressable,
+  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
@@ -24,7 +26,13 @@ function FollowUserItem({
   onToggle: (userId: string) => void;
 }) {
   return (
-    <View style={styles.userItem}>
+    <Pressable
+      style={({ pressed }) => [
+        styles.userItem,
+        pressed && { opacity: 0.7 },
+        Platform.OS === 'web' ? ({ cursor: 'pointer' } as any) : undefined,
+      ]}
+    >
       <Avatar
         uri={user.avatarUrl ?? undefined}
         size="md"
@@ -44,7 +52,7 @@ function FollowUserItem({
         size="sm"
         onPress={() => onToggle(user.id)}
       />
-    </View>
+    </Pressable>
   );
 }
 

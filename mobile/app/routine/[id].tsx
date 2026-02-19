@@ -3,9 +3,10 @@ import {
   View,
   Text,
   ScrollView,
-  TouchableOpacity,
+  Pressable,
   StyleSheet,
   Alert,
+  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -94,9 +95,16 @@ export default function RoutineDetailScreen() {
         title={truncate(routine.title, 15)}
         onBack={() => router.back()}
         rightAction={
-          <TouchableOpacity onPress={handleShare} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+          <Pressable
+            style={({ pressed }) => [
+              pressed && { opacity: 0.7 },
+              Platform.OS === 'web' ? ({ cursor: 'pointer' } as any) : undefined,
+            ]}
+            onPress={handleShare}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          >
             <Share2 size={20} color={colors.textPrimary} />
-          </TouchableOpacity>
+          </Pressable>
         }
       />
 
@@ -158,13 +166,14 @@ export default function RoutineDetailScreen() {
             {periodOptions.map((option) => {
               const isSelected = selectedPeriod === option.key;
               return (
-                <TouchableOpacity
+                <Pressable
                   key={option.key}
-                  style={[
+                  style={({ pressed }) => [
                     styles.priceOption,
                     isSelected && styles.priceOptionSelected,
+                    pressed && { opacity: 0.7 },
+                    Platform.OS === 'web' ? ({ cursor: 'pointer' } as any) : undefined,
                   ]}
-                  activeOpacity={0.7}
                   onPress={() => setSelectedPeriod(option.key)}
                 >
                   <View style={styles.priceOptionLeft}>
@@ -198,7 +207,7 @@ export default function RoutineDetailScreen() {
                   >
                     {formatCurrency(priceMap[option.key])}
                   </Text>
-                </TouchableOpacity>
+                </Pressable>
               );
             })}
           </View>
@@ -208,7 +217,7 @@ export default function RoutineDetailScreen() {
 
         {/* Day Preview Section */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>루틴 미리보기</Text>
+          <Text style={styles.sectionTitle}>일별 루틴 미리보기</Text>
           {displayDays.map((dayNum) => (
             <View key={dayNum} style={styles.dayBlock}>
               <View style={styles.dayHeader}>
@@ -228,10 +237,13 @@ export default function RoutineDetailScreen() {
             </View>
           ))}
           {dayNumbers.length > 3 && (
-            <TouchableOpacity
-              style={styles.showMoreButton}
+            <Pressable
+              style={({ pressed }) => [
+                styles.showMoreButton,
+                pressed && { opacity: 0.7 },
+                Platform.OS === 'web' ? ({ cursor: 'pointer' } as any) : undefined,
+              ]}
               onPress={() => setShowAllDays(!showAllDays)}
-              activeOpacity={0.7}
             >
               <Text style={styles.showMoreText}>
                 {showAllDays ? '접기' : '더보기'}
@@ -241,7 +253,7 @@ export default function RoutineDetailScreen() {
               ) : (
                 <ChevronDown size={16} color={colors.primary} />
               )}
-            </TouchableOpacity>
+            </Pressable>
           )}
         </View>
 

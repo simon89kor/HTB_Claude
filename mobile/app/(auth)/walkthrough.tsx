@@ -7,37 +7,37 @@ import {
   Dimensions,
   NativeSyntheticEvent,
   NativeScrollEvent,
-  TouchableOpacity,
+  Pressable,
+  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { BookOpen, CheckSquare, Users } from 'lucide-react-native';
 import { Button } from '@/src/components/common';
 import { colors, typography, spacing } from '@/src/theme/tokens';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 interface SlideData {
-  icon: React.ReactNode;
+  emoji: string;
   title: string;
-  description: string;
+  subtitle: string;
 }
 
 const slides: SlideData[] = [
   {
-    icon: <BookOpen size={120} color={colors.primary} strokeWidth={1.5} />,
-    title: '전문가의 루틴으로 시작하세요',
-    description: '검증된 전문가들이 만든 맞춤 루틴으로\n당신의 일상을 변화시켜 보세요',
+    emoji: '\u{1F3C3}\u200D\u2642\uFE0F',
+    title: '전문가가 만든 루틴으로 시작하세요',
+    subtitle: '검증된 전문가의 루틴을 내 일정에 바로 추가',
   },
   {
-    icon: <CheckSquare size={120} color={colors.primary} strokeWidth={1.5} />,
-    title: '매일 체크하며 성장하세요',
-    description: '할 일을 하나씩 완료하며\n작은 성취감을 쌓아가세요',
+    emoji: '\u2705',
+    title: '매일 체크하며 나를 바꿔보세요',
+    subtitle: '투두리스트로 매일 실천하고 성장을 기록',
   },
   {
-    icon: <Users size={120} color={colors.primary} strokeWidth={1.5} />,
-    title: '함께하면 더 즐거워요',
-    description: '커뮤니티에서 경험을 나누고\n서로 응원하며 함께 성장하세요',
+    emoji: '\u{1F465}',
+    title: '함께하면 더 재미있어요',
+    subtitle: '커뮤니티에서 인증하고 함께 성장',
   },
 ];
 
@@ -72,9 +72,16 @@ export default function WalkthroughScreen() {
       {/* Skip button */}
       <View style={styles.header}>
         <View style={styles.headerSpacer} />
-        <TouchableOpacity onPress={goToLogin} activeOpacity={0.7}>
+        <Pressable
+          onPress={goToLogin}
+          style={({ pressed }) => [
+            styles.skipButton,
+            pressed && { opacity: 0.7 },
+            Platform.OS === 'web' ? ({ cursor: 'pointer' } as any) : undefined,
+          ]}
+        >
           <Text style={styles.skipText}>건너뛰기</Text>
-        </TouchableOpacity>
+        </Pressable>
       </View>
 
       {/* Slides */}
@@ -89,9 +96,9 @@ export default function WalkthroughScreen() {
       >
         {slides.map((slide, index) => (
           <View key={index} style={styles.slide}>
-            <View style={styles.iconContainer}>{slide.icon}</View>
+            <Text style={styles.slideEmoji}>{slide.emoji}</Text>
             <Text style={styles.slideTitle}>{slide.title}</Text>
-            <Text style={styles.slideDescription}>{slide.description}</Text>
+            <Text style={styles.slideSubtitle}>{slide.subtitle}</Text>
           </View>
         ))}
       </ScrollView>
@@ -139,6 +146,9 @@ const styles = StyleSheet.create({
   headerSpacer: {
     width: 60,
   },
+  skipButton: {
+    padding: spacing.xs,
+  },
   skipText: {
     ...typography.body1,
     color: colors.textSecondary,
@@ -152,7 +162,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingHorizontal: spacing.xl,
   },
-  iconContainer: {
+  slideEmoji: {
+    fontSize: 80,
     marginBottom: spacing.xxl,
   },
   slideTitle: {
@@ -161,7 +172,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: spacing.md,
   },
-  slideDescription: {
+  slideSubtitle: {
     ...typography.body1,
     color: colors.textSecondary,
     textAlign: 'center',
@@ -184,7 +195,7 @@ const styles = StyleSheet.create({
     width: 24,
   },
   indicatorInactive: {
-    backgroundColor: colors.border,
+    backgroundColor: colors.textTertiary,
   },
   buttonContainer: {
     paddingHorizontal: spacing.md,

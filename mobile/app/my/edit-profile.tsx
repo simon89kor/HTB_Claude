@@ -4,8 +4,9 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  TouchableOpacity,
+  Pressable,
   Alert,
+  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -62,10 +63,13 @@ export default function EditProfileScreen() {
         showsVerticalScrollIndicator={false}
       >
         {/* Profile Photo */}
-        <TouchableOpacity
-          style={styles.avatarSection}
+        <Pressable
+          style={({ pressed }) => [
+            styles.avatarSection,
+            pressed && { opacity: 0.7 },
+            Platform.OS === 'web' ? ({ cursor: 'pointer' } as any) : undefined,
+          ]}
           onPress={() => Alert.alert('안내', '준비 중입니다')}
-          activeOpacity={0.7}
         >
           <Avatar
             uri={profile.avatarUrl ?? undefined}
@@ -73,7 +77,7 @@ export default function EditProfileScreen() {
             fallback={profile.nickname}
           />
           <Text style={styles.changePhotoText}>사진 변경</Text>
-        </TouchableOpacity>
+        </Pressable>
 
         {/* Form */}
         <View style={styles.formSection}>
@@ -82,7 +86,7 @@ export default function EditProfileScreen() {
             value={nickname}
             onChangeText={setNickname}
             placeholder="닉네임을 입력하세요"
-            maxLength={20}
+            maxLength={12}
           />
 
           <TextInput

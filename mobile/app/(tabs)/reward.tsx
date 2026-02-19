@@ -4,7 +4,8 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  TouchableOpacity,
+  Pressable,
+  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Trophy, ChevronRight, Lock } from 'lucide-react-native';
@@ -117,13 +118,16 @@ export default function RewardScreen() {
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>내 배지</Text>
-            <TouchableOpacity
-              style={styles.seeAllButton}
-              activeOpacity={0.7}
+            <Pressable
+              style={({ pressed }) => [
+                styles.seeAllButton,
+                pressed && { opacity: 0.7 },
+                Platform.OS === 'web' ? ({ cursor: 'pointer' } as any) : undefined,
+              ]}
             >
               <Text style={styles.seeAllText}>전체보기</Text>
               <ChevronRight size={14} color={colors.textSecondary} />
-            </TouchableOpacity>
+            </Pressable>
           </View>
 
           <ScrollView

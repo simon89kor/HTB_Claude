@@ -4,7 +4,8 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  TouchableOpacity,
+  Pressable,
+  Platform,
   ActivityIndicator,
   Alert,
 } from 'react-native';
@@ -52,7 +53,15 @@ export default function MyScreen() {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={colors.primary} />
+          <Text style={styles.errorText}>프로필을 불러올 수 없습니다</Text>
+          <View style={styles.retryButton}>
+            <Button
+              title="다시 시도"
+              variant="primary"
+              size="sm"
+              onPress={() => loadProfile()}
+            />
+          </View>
         </View>
       </SafeAreaView>
     );
@@ -108,35 +117,44 @@ export default function MyScreen() {
 
         {/* Stats Row */}
         <View style={styles.statsRow}>
-          <TouchableOpacity
-            style={styles.statItem}
+          <Pressable
+            style={({ pressed }) => [
+              styles.statItem,
+              pressed && { opacity: 0.7 },
+              Platform.OS === 'web' ? ({ cursor: 'pointer' } as any) : undefined,
+            ]}
             onPress={() => router.push('/my/followers?tab=followers')}
-            activeOpacity={0.7}
           >
             <Text style={styles.statNumber}>{profile.followerCount}</Text>
             <Text style={styles.statLabel}>팔로워</Text>
-          </TouchableOpacity>
+          </Pressable>
 
           <View style={styles.statDivider} />
 
-          <TouchableOpacity
-            style={styles.statItem}
+          <Pressable
+            style={({ pressed }) => [
+              styles.statItem,
+              pressed && { opacity: 0.7 },
+              Platform.OS === 'web' ? ({ cursor: 'pointer' } as any) : undefined,
+            ]}
             onPress={() => router.push('/my/followers?tab=following')}
-            activeOpacity={0.7}
           >
             <Text style={styles.statNumber}>{profile.followingCount}</Text>
             <Text style={styles.statLabel}>팔로잉</Text>
-          </TouchableOpacity>
+          </Pressable>
 
           <View style={styles.statDivider} />
 
-          <TouchableOpacity
-            style={styles.statItem}
-            activeOpacity={0.7}
+          <Pressable
+            style={({ pressed }) => [
+              styles.statItem,
+              pressed && { opacity: 0.7 },
+              Platform.OS === 'web' ? ({ cursor: 'pointer' } as any) : undefined,
+            ]}
           >
             <Text style={styles.statNumber}>{profile.postCount}</Text>
             <Text style={styles.statLabel}>게시물</Text>
-          </TouchableOpacity>
+          </Pressable>
         </View>
 
         {/* Edit Profile Button */}
@@ -155,18 +173,21 @@ export default function MyScreen() {
         {/* Menu List */}
         <View style={styles.menuSection}>
           {menuItems.map((item, index) => (
-            <TouchableOpacity
+            <Pressable
               key={index}
-              style={styles.menuItem}
+              style={({ pressed }) => [
+                styles.menuItem,
+                pressed && { opacity: 0.7 },
+                Platform.OS === 'web' ? ({ cursor: 'pointer' } as any) : undefined,
+              ]}
               onPress={item.onPress}
-              activeOpacity={0.7}
             >
               <View style={styles.menuItemLeft}>
                 {item.icon}
                 <Text style={styles.menuItemLabel}>{item.label}</Text>
               </View>
               <ChevronRight size={20} color={colors.textTertiary} />
-            </TouchableOpacity>
+            </Pressable>
           ))}
         </View>
       </ScrollView>
@@ -183,6 +204,15 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  errorText: {
+    fontSize: typography.body1.fontSize,
+    fontWeight: typography.body1.fontWeight,
+    color: colors.textSecondary,
+    marginBottom: spacing.md,
+  },
+  retryButton: {
+    marginTop: spacing.sm,
   },
   scrollView: {
     flex: 1,

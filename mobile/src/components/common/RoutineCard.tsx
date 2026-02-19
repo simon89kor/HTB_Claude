@@ -1,7 +1,7 @@
 import React from 'react';
-import { View, Text, Image, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, Pressable, StyleSheet, Platform } from 'react-native';
 import { Star, Users } from 'lucide-react-native';
-import { colors, typography, spacing, borderRadius } from '@/src/theme/tokens';
+import { colors, typography, spacing, borderRadius, categories } from '@/src/theme/tokens';
 import { Routine } from '@/src/types';
 
 interface RoutineCardProps {
@@ -9,37 +9,25 @@ interface RoutineCardProps {
   onPress: () => void;
 }
 
-const categoryLabels: Record<string, string> = {
-  exercise: '운동루틴',
-  diet: '식단관리',
-  selfdev: '자기계발',
-  cert: '자격증',
-  study: '학업',
-};
-
 export default function RoutineCard({ routine, onPress }: RoutineCardProps) {
   const providerName = routine.provider?.nickname ?? '전문가';
-  const categoryLabel = categoryLabels[routine.category] ?? routine.category;
-  const lowestPrice = Math.min(
-    routine.price1week,
-    routine.price4week,
-    routine.price100days,
-  );
+  const category = categories.find((c) => c.key === routine.category);
+  const categoryEmoji = category?.emoji ?? '📋';
+  const categoryLabel = category?.label ?? routine.category;
+  const lowestPrice = Math.min(routine.price1week, routine.price4week, routine.price100days);
 
   return (
-    <TouchableOpacity
-      style={styles.container}
+    <Pressable
+      style={({ pressed }) => [
+        styles.container,
+        pressed && { opacity: 0.7 },
+        Platform.OS === 'web' ? ({ cursor: 'pointer' } as any) : undefined,
+      ]}
       onPress={onPress}
-      activeOpacity={0.7}
     >
-      <Image
-        source={
-          routine.imageUrl
-            ? { uri: routine.imageUrl }
-            : undefined
-        }
-        style={styles.image}
-      />
+      <View style={styles.imageBox}>
+        <Text style={styles.emoji}>{categoryEmoji}</Text>
+      </View>
       <View style={styles.content}>
         <Text style={styles.provider} numberOfLines={1}>
           {providerName}
@@ -66,7 +54,7 @@ export default function RoutineCard({ routine, onPress }: RoutineCardProps) {
           </View>
         </View>
       </View>
-    </TouchableOpacity>
+    </Pressable>
   );
 }
 
@@ -76,12 +64,19 @@ const styles = StyleSheet.create({
     backgroundColor: colors.bgPrimary,
     borderRadius: borderRadius.md,
     padding: spacing.sm,
+    borderWidth: 1,
+    borderColor: colors.border,
   },
-  image: {
+  imageBox: {
     width: 80,
     height: 80,
     borderRadius: borderRadius.sm,
     backgroundColor: colors.bgSecondary,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  emoji: {
+    fontSize: 32,
   },
   content: {
     flex: 1,

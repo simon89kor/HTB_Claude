@@ -4,6 +4,8 @@ import {
   Text,
   StyleSheet,
   FlatList,
+  Pressable,
+  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -18,7 +20,13 @@ function PurchaseCard({ routine }: { routine: MyRoutine }) {
   const pricingInfo = routinePricing[routine.period];
 
   return (
-    <View style={styles.card}>
+    <Pressable
+      style={({ pressed }) => [
+        styles.card,
+        pressed && { opacity: 0.7 },
+        Platform.OS === 'web' ? ({ cursor: 'pointer' } as any) : undefined,
+      ]}
+    >
       <View style={styles.cardHeader}>
         <Badge
           label={routine.status === 'active' ? '진행 중' : '완료'}
@@ -36,7 +44,7 @@ function PurchaseCard({ routine }: { routine: MyRoutine }) {
           {pricingInfo.label} / {pricingInfo.price.toLocaleString()}원
         </Text>
       </View>
-    </View>
+    </Pressable>
   );
 }
 

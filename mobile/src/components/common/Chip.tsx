@@ -1,5 +1,5 @@
 import React from 'react';
-import { TouchableOpacity, Text, StyleSheet } from 'react-native';
+import { Pressable, Text, StyleSheet, Platform } from 'react-native';
 import { colors, typography, spacing, borderRadius } from '@/src/theme/tokens';
 
 interface ChipProps {
@@ -16,13 +16,14 @@ export default function Chip({
   emoji,
 }: ChipProps) {
   return (
-    <TouchableOpacity
-      style={[
+    <Pressable
+      style={({ pressed }) => [
         styles.container,
         selected ? styles.selected : styles.unselected,
+        pressed && { opacity: 0.7 },
+        Platform.OS === 'web' ? ({ cursor: 'pointer' } as any) : undefined,
       ]}
       onPress={onPress}
-      activeOpacity={0.7}
     >
       {emoji && <Text style={styles.emoji}>{emoji}</Text>}
       <Text
@@ -33,7 +34,7 @@ export default function Chip({
       >
         {label}
       </Text>
-    </TouchableOpacity>
+    </Pressable>
   );
 }
 

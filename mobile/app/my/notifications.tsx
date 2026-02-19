@@ -4,6 +4,8 @@ import {
   Text,
   StyleSheet,
   Switch,
+  Pressable,
+  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -25,7 +27,14 @@ function NotificationItem({
   onValueChange,
 }: NotificationItemProps) {
   return (
-    <View style={styles.item}>
+    <Pressable
+      style={({ pressed }) => [
+        styles.item,
+        pressed && { opacity: 0.7 },
+        Platform.OS === 'web' ? ({ cursor: 'pointer' } as any) : undefined,
+      ]}
+      onPress={() => onValueChange(!value)}
+    >
       <View style={styles.itemTextContainer}>
         <Text style={styles.itemLabel}>{label}</Text>
         <Text style={styles.itemDescription}>{description}</Text>
@@ -36,7 +45,7 @@ function NotificationItem({
         trackColor={{ false: colors.border, true: colors.primaryLight }}
         thumbColor={value ? colors.primary : colors.bgSecondary}
       />
-    </View>
+    </Pressable>
   );
 }
 
@@ -50,7 +59,7 @@ export default function NotificationsScreen() {
 
       <View style={styles.content}>
         <NotificationItem
-          label="루틴 리마인더"
+          label="일정 알림"
           description="루틴 실행 시간 알림을 받습니다"
           value={notificationSettings.routine}
           onValueChange={(value) => setNotificationSetting('routine', value)}

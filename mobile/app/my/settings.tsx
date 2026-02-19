@@ -4,8 +4,9 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  TouchableOpacity,
+  Pressable,
   Alert,
+  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -49,7 +50,7 @@ export default function SettingsScreen() {
           onPress: () => {
             resetProfile();
             logout();
-            // Root _layout.tsx will detect isAuthenticated=false and redirect to auth
+            router.replace('/(auth)/splash');
           },
         },
       ]
@@ -68,6 +69,7 @@ export default function SettingsScreen() {
           onPress: () => {
             resetProfile();
             logout();
+            router.replace('/(auth)/splash');
           },
         },
       ]
@@ -114,11 +116,14 @@ export default function SettingsScreen() {
   ];
 
   const renderItem = (item: SettingsItem, index: number) => (
-    <TouchableOpacity
+    <Pressable
       key={index}
-      style={styles.menuItem}
+      style={({ pressed }) => [
+        styles.menuItem,
+        pressed && { opacity: 0.7 },
+        Platform.OS === 'web' ? ({ cursor: 'pointer' } as any) : undefined,
+      ]}
       onPress={item.onPress}
-      activeOpacity={0.7}
     >
       <View style={styles.menuItemLeft}>
         {item.icon}
@@ -132,7 +137,7 @@ export default function SettingsScreen() {
         </Text>
       </View>
       {item.rightContent ?? <ChevronRight size={20} color={colors.textTertiary} />}
-    </TouchableOpacity>
+    </Pressable>
   );
 
   return (

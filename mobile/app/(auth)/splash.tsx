@@ -1,26 +1,37 @@
 import { useEffect } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { colors, typography } from '@/src/theme/tokens';
+import { useAuthStore } from '@/src/stores/authStore';
+import { colors, typography, spacing } from '@/src/theme/tokens';
 
 export default function SplashScreen() {
   const router = useRouter();
+  const { isAuthenticated, isOnboarded } = useAuthStore();
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      router.replace('/(auth)/walkthrough');
+      if (!isAuthenticated) {
+        router.replace('/(auth)/walkthrough');
+      } else if (!isOnboarded) {
+        router.replace('/(auth)/preference');
+      } else {
+        router.replace('/(tabs)/board');
+      }
     }, 2000);
 
     return () => clearTimeout(timer);
-  }, [router]);
+  }, [router, isAuthenticated, isOnboarded]);
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <View style={styles.content}>
-        <Text style={styles.title}>HTB</Text>
-        <Text style={styles.subtitle}>How To Be</Text>
+        <Text style={styles.title}>HOW TO BE</Text>
       </View>
-    </View>
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color={colors.textWhite} />
+      </View>
+    </SafeAreaView>
   );
 }
 
@@ -35,15 +46,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   title: {
-    fontSize: 48,
+    fontSize: 36,
     fontWeight: '700',
     color: colors.textWhite,
     letterSpacing: 4,
   },
-  subtitle: {
-    ...typography.h3,
-    color: colors.textWhite,
-    marginTop: 8,
-    opacity: 0.9,
+  loadingContainer: {
+    paddingBottom: spacing.xxl,
+    alignItems: 'center',
   },
 });

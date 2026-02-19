@@ -4,6 +4,8 @@ import {
   Text,
   StyleSheet,
   FlatList,
+  Pressable,
+  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -21,7 +23,13 @@ function RoutineCard({ routine }: { routine: MyRoutine }) {
 
   if (routine.status === 'completed') {
     return (
-      <View style={styles.card}>
+      <Pressable
+        style={({ pressed }) => [
+          styles.card,
+          pressed && { opacity: 0.7 },
+          Platform.OS === 'web' ? ({ cursor: 'pointer' } as any) : undefined,
+        ]}
+      >
         <View style={[styles.categoryBar, { backgroundColor: accentColor }]} />
         <View style={styles.cardContent}>
           <View style={styles.completedRow}>
@@ -35,12 +43,18 @@ function RoutineCard({ routine }: { routine: MyRoutine }) {
             {routine.startedAt.split('T')[0]} ~ {routine.endsAt.split('T')[0]}
           </Text>
         </View>
-      </View>
+      </Pressable>
     );
   }
 
   return (
-    <View style={styles.card}>
+    <Pressable
+      style={({ pressed }) => [
+        styles.card,
+        pressed && { opacity: 0.7 },
+        Platform.OS === 'web' ? ({ cursor: 'pointer' } as any) : undefined,
+      ]}
+    >
       <View style={[styles.categoryBar, { backgroundColor: accentColor }]} />
       <View style={styles.cardContent}>
         <Text style={styles.cardTitle}>{routine.title}</Text>
@@ -65,7 +79,7 @@ function RoutineCard({ routine }: { routine: MyRoutine }) {
         {/* D-day */}
         <Text style={styles.ddayText}>D-{routine.dday}</Text>
       </View>
-    </View>
+    </Pressable>
   );
 }
 

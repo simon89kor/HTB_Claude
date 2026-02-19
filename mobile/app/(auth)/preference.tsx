@@ -1,10 +1,18 @@
 import { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuthStore } from '@/src/stores/authStore';
-import { Button } from '@/src/components/common';
-import { colors, typography, spacing, borderRadius, categories } from '@/src/theme/tokens';
+import { Button, Chip } from '@/src/components/common';
+import { colors, typography, spacing } from '@/src/theme/tokens';
 import { CategoryKey } from '@/src/types';
+
+const PREFERENCE_CATEGORIES: { key: CategoryKey; label: string; emoji: string }[] = [
+  { key: 'exercise', label: '운동루틴', emoji: '\u{1F4AA}' },
+  { key: 'diet', label: '식단관리', emoji: '\u{1F957}' },
+  { key: 'selfdev', label: '자기계발', emoji: '\u{1F393}' },
+  { key: 'cert', label: '자격증', emoji: '\u{1F4DD}' },
+  { key: 'study', label: '학업', emoji: '\u{1F4DA}' },
+];
 
 export default function PreferenceScreen() {
   const { setPreferences, setOnboarded } = useAuthStore();
@@ -36,32 +44,18 @@ export default function PreferenceScreen() {
 
         {/* Category Chips */}
         <View style={styles.chipGrid}>
-          {categories
-            .filter((cat) => cat.key !== 'all')
-            .map((cat) => {
-              const isSelected = selected.includes(cat.key as CategoryKey);
-              return (
-                <TouchableOpacity
-                  key={cat.key}
-                  style={[
-                    styles.chip,
-                    isSelected ? styles.chipSelected : styles.chipUnselected,
-                  ]}
-                  onPress={() => toggleCategory(cat.key as CategoryKey)}
-                  activeOpacity={0.7}
-                >
-                  <Text style={styles.chipEmoji}>{cat.emoji}</Text>
-                  <Text
-                    style={[
-                      styles.chipLabel,
-                      isSelected ? styles.chipLabelSelected : styles.chipLabelUnselected,
-                    ]}
-                  >
-                    {cat.label}
-                  </Text>
-                </TouchableOpacity>
-              );
-            })}
+          {PREFERENCE_CATEGORIES.map((cat) => {
+            const isSelected = selected.includes(cat.key);
+            return (
+              <Chip
+                key={cat.key}
+                label={cat.label}
+                emoji={cat.emoji}
+                selected={isSelected}
+                onPress={() => toggleCategory(cat.key)}
+              />
+            );
+          })}
         </View>
       </View>
 
@@ -106,35 +100,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: spacing.sm,
-  },
-  chip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm + 4,
-    borderRadius: borderRadius.full,
-    borderWidth: 1.5,
-    gap: spacing.sm,
-  },
-  chipSelected: {
-    backgroundColor: colors.primary,
-    borderColor: colors.primary,
-  },
-  chipUnselected: {
-    backgroundColor: colors.bgSecondary,
-    borderColor: colors.bgSecondary,
-  },
-  chipEmoji: {
-    fontSize: 20,
-  },
-  chipLabel: {
-    ...typography.h3,
-  },
-  chipLabelSelected: {
-    color: colors.textWhite,
-  },
-  chipLabelUnselected: {
-    color: colors.textPrimary,
   },
   buttonContainer: {
     paddingHorizontal: spacing.md,

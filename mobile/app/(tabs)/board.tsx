@@ -4,7 +4,8 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  TouchableOpacity,
+  Pressable,
+  Platform,
   ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -57,7 +58,7 @@ const MOCK_TODOS: Record<string, TodoItem[]> = {
 
 // ─── Helpers ────────────────────────────────────────────
 
-const DAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+const DAY_LABELS = ['일', '월', '화', '수', '목', '금', '토'];
 
 function getWeekDays(): DayInfo[] {
   const today = new Date();
@@ -150,7 +151,7 @@ export default function BoardScreen() {
   };
 
   const navigateToHome = () => {
-    router.push('/(tabs)');
+    router.replace('/(tabs)');
   };
 
   if (isLoading) {
@@ -167,7 +168,7 @@ export default function BoardScreen() {
     <SafeAreaView style={styles.container} edges={['top']}>
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>BOARD</Text>
+        <Text style={styles.headerTitle}>HOW TO BE</Text>
         <Calendar size={22} color={colors.textSecondary} />
       </View>
 
@@ -176,11 +177,15 @@ export default function BoardScreen() {
         {weekDays.map((day, index) => {
           const isSelected = selectedDay === -1 ? day.isToday : selectedDay === index;
           return (
-            <TouchableOpacity
+            <Pressable
               key={day.dayLabel}
-              style={[styles.dayItem, isSelected && styles.dayItemSelected]}
+              style={({ pressed }) => [
+                styles.dayItem,
+                isSelected && styles.dayItemSelected,
+                pressed && { opacity: 0.7 },
+                Platform.OS === 'web' ? ({ cursor: 'pointer' } as any) : undefined,
+              ]}
               onPress={() => setSelectedDay(day.isToday ? -1 : index)}
-              activeOpacity={0.7}
             >
               <Text style={[styles.dayLabel, isSelected && styles.dayLabelSelected]}>
                 {day.dayLabel}
@@ -188,7 +193,7 @@ export default function BoardScreen() {
               <Text style={[styles.dayNum, isSelected && styles.dayNumSelected]}>
                 {day.dateNum}
               </Text>
-            </TouchableOpacity>
+            </Pressable>
           );
         })}
       </View>
@@ -199,7 +204,7 @@ export default function BoardScreen() {
           icon={<CheckSquareIcon />}
           title="아직 진행 중인 루틴이 없어요"
           description="전문가가 만든 루틴을 구매하고 매일 투두를 완료해보세요!"
-          actionLabel="루틴 둘러보기"
+          actionLabel="둘러보기"
           onAction={navigateToHome}
         />
       ) : (
@@ -227,10 +232,17 @@ export default function BoardScreen() {
 
       {/* FAB */}
       {activeRoutines.length > 0 && (
-        <TouchableOpacity style={styles.fab} onPress={navigateToHome} activeOpacity={0.8}>
+        <Pressable
+          style={({ pressed }) => [
+            styles.fab,
+            pressed && { opacity: 0.7 },
+            Platform.OS === 'web' ? ({ cursor: 'pointer' } as any) : undefined,
+          ]}
+          onPress={navigateToHome}
+        >
           <Plus size={24} color={colors.textWhite} />
           <Text style={styles.fabText}>HOW TO BE 추가하기</Text>
-        </TouchableOpacity>
+        </Pressable>
       )}
     </SafeAreaView>
   );
@@ -273,10 +285,13 @@ function RoutineSection({
 
       <View style={styles.routineContent}>
         {/* Header */}
-        <TouchableOpacity
-          style={styles.routineHeader}
+        <Pressable
+          style={({ pressed }) => [
+            styles.routineHeader,
+            pressed && { opacity: 0.7 },
+            Platform.OS === 'web' ? ({ cursor: 'pointer' } as any) : undefined,
+          ]}
           onPress={onToggleExpand}
-          activeOpacity={0.7}
         >
           <View style={styles.routineHeaderLeft}>
             <Text style={styles.routineEmoji}>{getCategoryLabel(routine.category)}</Text>
@@ -299,7 +314,7 @@ function RoutineSection({
               <ChevronDown size={18} color={colors.textSecondary} />
             )}
           </View>
-        </TouchableOpacity>
+        </Pressable>
 
         {/* Progress Bar */}
         <View style={styles.progressBarBg}>

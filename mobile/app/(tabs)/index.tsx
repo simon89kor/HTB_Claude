@@ -4,8 +4,9 @@ import {
   Text,
   FlatList,
   ScrollView,
-  TouchableOpacity,
+  Pressable,
   StyleSheet,
+  Platform,
   NativeSyntheticEvent,
   NativeScrollEvent,
 } from 'react-native';
@@ -74,13 +75,17 @@ export default function HomeScreen() {
 
   const renderBanner = useCallback(
     ({ item }: { item: (typeof banners)[number] }) => (
-      <TouchableOpacity
-        style={[styles.bannerCard, { backgroundColor: item.bgColor }]}
-        activeOpacity={0.9}
+      <Pressable
+        style={({ pressed }) => [
+          styles.bannerCard,
+          { backgroundColor: item.bgColor },
+          pressed && { opacity: 0.7 },
+          Platform.OS === 'web' ? ({ cursor: 'pointer' } as any) : undefined,
+        ]}
       >
         <Text style={styles.bannerTitle}>{item.title}</Text>
         <Text style={styles.bannerSubtitle}>{item.subtitle}</Text>
-      </TouchableOpacity>
+      </Pressable>
     ),
     []
   );
@@ -92,9 +97,12 @@ export default function HomeScreen() {
       const providerName = item.provider?.nickname ?? '전문가';
 
       return (
-        <TouchableOpacity
-          style={styles.topCard}
-          activeOpacity={0.7}
+        <Pressable
+          style={({ pressed }) => [
+            styles.topCard,
+            pressed && { opacity: 0.7 },
+            Platform.OS === 'web' ? ({ cursor: 'pointer' } as any) : undefined,
+          ]}
           onPress={() => handleRoutinePress(item.id)}
         >
           <View style={[styles.topCardImage, { backgroundColor: bgColor }]}>
@@ -116,127 +124,120 @@ export default function HomeScreen() {
               {formatCurrency(item.price1week)}/주
             </Text>
           </View>
-        </TouchableOpacity>
+        </Pressable>
       );
     },
     [handleRoutinePress]
   );
 
-  const renderRoutineItem = useCallback(
-    ({ item }: { item: Routine }) => (
-      <View style={styles.routineCardWrapper}>
-        <RoutineCard
-          routine={item}
-          onPress={() => handleRoutinePress(item.id)}
-        />
-      </View>
-    ),
-    [handleRoutinePress]
-  );
-
-  const ListHeader = useCallback(() => (
-    <View>
-      {/* Search Bar */}
-      <View style={styles.searchRow}>
-        <TouchableOpacity style={styles.searchBar} activeOpacity={0.7}>
-          <Search size={18} color={colors.textTertiary} />
-          <Text style={styles.searchPlaceholder}>루틴을 검색해보세요</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.bellButton} activeOpacity={0.7}>
-          <Bell size={22} color={colors.textPrimary} />
-        </TouchableOpacity>
-      </View>
-
-      {/* Featured Banners */}
-      <View style={styles.bannerSection}>
-        <FlatList
-          data={banners}
-          renderItem={renderBanner}
-          keyExtractor={(item) => item.id}
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.bannerList}
-          snapToInterval={BANNER_WIDTH + spacing.sm}
-          decelerationRate="fast"
-          onScroll={handleBannerScroll}
-          scrollEventThrottle={16}
-        />
-        {/* Page indicator dots */}
-        <View style={styles.dotsRow}>
-          {banners.map((b, i) => (
-            <View
-              key={b.id}
-              style={[
-                styles.dot,
-                i === activeBanner ? styles.dotActive : styles.dotInactive,
-              ]}
-            />
-          ))}
-        </View>
-      </View>
-
-      {/* Category Tabs */}
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.categoryList}
-        style={styles.categorySection}
-      >
-        {categories.map((cat) => (
-          <Chip
-            key={cat.key}
-            label={cat.label}
-            emoji={cat.emoji}
-            selected={selectedCategory === cat.key}
-            onPress={() => setCategory(cat.key)}
-          />
-        ))}
-      </ScrollView>
-
-      {/* TOP 10 Section (only when 'all' selected) */}
-      {selectedCategory === 'all' && (
-        <View style={styles.topSection}>
-          <Text style={styles.sectionTitle}>TOP 10 인기 루틴 \uD83C\uDFC6</Text>
-          <FlatList
-            data={featuredRoutines}
-            renderItem={renderTopRoutine}
-            keyExtractor={(item) => `top-${item.id}`}
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.topList}
-          />
-        </View>
-      )}
-
-      {/* Section Title for routine list */}
-      <View style={styles.listHeaderRow}>
-        <Text style={styles.sectionTitle}>{getCategoryLabel()}</Text>
-        <Text style={styles.countText}>{filteredRoutines.length}개</Text>
-      </View>
-    </View>
-  ), [
-    selectedCategory,
-    setCategory,
-    activeBanner,
-    handleBannerScroll,
-    renderBanner,
-    renderTopRoutine,
-    featuredRoutines,
-    getCategoryLabel,
-    filteredRoutines.length,
-  ]);
-
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <FlatList
-        data={filteredRoutines}
-        renderItem={renderRoutineItem}
-        keyExtractor={(item) => item.id}
-        ListHeaderComponent={ListHeader}
-        ListFooterComponent={<View style={styles.bottomPadding} />}
+      <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.mainList}
-      />
+      >
+        {/* Search Bar */}
+        <View style={styles.searchRow}>
+          <Pressable
+            style={({ pressed }) => [
+              styles.searchBar,
+              pressed && { opacity: 0.7 },
+              Platform.OS === 'web' ? ({ cursor: 'pointer' } as any) : undefined,
+            ]}
+          >
+            <Search size={18} color={colors.textTertiary} />
+            <Text style={styles.searchPlaceholder}>루틴을 검색해보세요</Text>
+          </Pressable>
+          <Pressable
+            style={({ pressed }) => [
+              styles.bellButton,
+              pressed && { opacity: 0.7 },
+              Platform.OS === 'web' ? ({ cursor: 'pointer' } as any) : undefined,
+            ]}
+          >
+            <Bell size={22} color={colors.textPrimary} />
+          </Pressable>
+        </View>
+
+        {/* Featured Banners */}
+        <View style={styles.bannerSection}>
+          <FlatList
+            data={banners}
+            renderItem={renderBanner}
+            keyExtractor={(item) => item.id}
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.bannerList}
+            snapToInterval={BANNER_WIDTH + spacing.sm}
+            decelerationRate="fast"
+            onScroll={handleBannerScroll}
+            scrollEventThrottle={16}
+          />
+          {/* Page indicator dots */}
+          <View style={styles.dotsRow}>
+            {banners.map((b, i) => (
+              <View
+                key={b.id}
+                style={[
+                  styles.dot,
+                  i === activeBanner ? styles.dotActive : styles.dotInactive,
+                ]}
+              />
+            ))}
+          </View>
+        </View>
+
+        {/* Category Tabs */}
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.categoryList}
+          style={styles.categorySection}
+        >
+          {categories.map((cat) => (
+            <Chip
+              key={cat.key}
+              label={cat.label}
+              emoji={cat.emoji}
+              selected={selectedCategory === cat.key}
+              onPress={() => setCategory(cat.key)}
+            />
+          ))}
+        </ScrollView>
+
+        {/* TOP 10 Section (only when 'all' selected) */}
+        {selectedCategory === 'all' && (
+          <View style={styles.topSection}>
+            <Text style={styles.sectionTitle}>TOP 10 인기 루틴 {'\uD83C\uDFC6'}</Text>
+            <FlatList
+              data={featuredRoutines}
+              renderItem={renderTopRoutine}
+              keyExtractor={(item) => `top-${item.id}`}
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.topList}
+            />
+          </View>
+        )}
+
+        {/* Section Title for routine list */}
+        <View style={styles.listHeaderRow}>
+          <Text style={styles.sectionTitle}>{getCategoryLabel()}</Text>
+          <Text style={styles.countText}>{filteredRoutines.length}개</Text>
+        </View>
+
+        {/* Routine List - vertical ScrollView with .map() */}
+        {filteredRoutines.map((item) => (
+          <View key={item.id} style={styles.routineCardWrapper}>
+            <RoutineCard
+              routine={item}
+              onPress={() => handleRoutinePress(item.id)}
+            />
+          </View>
+        ))}
+
+        <View style={styles.bottomPadding} />
+      </ScrollView>
     </SafeAreaView>
   );
 }

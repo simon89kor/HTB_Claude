@@ -1,5 +1,5 @@
 import React from 'react';
-import { TouchableOpacity, View, Text, StyleSheet } from 'react-native';
+import { Pressable, View, Text, StyleSheet, Platform } from 'react-native';
 import { Check } from 'lucide-react-native';
 import { colors, typography, spacing, borderRadius } from '@/src/theme/tokens';
 
@@ -15,16 +15,19 @@ export default function Checkbox({
   label,
 }: CheckboxProps) {
   return (
-    <TouchableOpacity
-      style={styles.container}
+    <Pressable
+      style={({ pressed }) => [
+        styles.container,
+        pressed && { opacity: 0.7 },
+        Platform.OS === 'web' ? ({ cursor: 'pointer' } as any) : undefined,
+      ]}
       onPress={onToggle}
-      activeOpacity={0.7}
     >
       <View style={[styles.box, checked ? styles.checked : styles.unchecked]}>
         {checked && <Check size={14} color={colors.textWhite} strokeWidth={3} />}
       </View>
       {label && <Text style={styles.label}>{label}</Text>}
-    </TouchableOpacity>
+    </Pressable>
   );
 }
 

@@ -59,6 +59,7 @@ interface UserStoreActions {
   updateProfile: (data: Partial<UserProfile>) => void;
   toggleFollow: (userId: string) => void;
   setNotificationSetting: (key: keyof NotificationSettings, value: boolean) => void;
+  addPurchasedRoutine: (routineId: string, title: string, category: CategoryKey, providerName: string, period: PeriodKey) => void;
 }
 
 // ─── Demo Data ──────────────────────────────────────────
@@ -68,7 +69,7 @@ const DEMO_PROFILE: UserProfile = {
   email: 'jiwoo@htb.com',
   nickname: '지우',
   avatarUrl: null,
-  bio: '루틴으로 성장하는 중 🌱',
+  bio: '루틴으로 성장하는 중',
   gender: 'female',
   birthDate: '1998-03-15',
   preferences: ['exercise', 'selfdev'],
@@ -284,5 +285,25 @@ export const useUserStore = create<UserStoreState & UserStoreActions>()((set, ge
     set((state) => ({
       notificationSettings: { ...state.notificationSettings, [key]: value },
     }));
+  },
+
+  addPurchasedRoutine: (routineId, title, category, providerName, period) => {
+    const periodDays: Record<PeriodKey, number> = { '1week': 7, '4week': 28, '100days': 100 };
+    const days = periodDays[period];
+    const now = new Date();
+    const end = new Date(now.getTime() + days * 24 * 60 * 60 * 1000);
+    const newRoutine: MyRoutine = {
+      id: routineId,
+      title,
+      category,
+      providerName,
+      period,
+      progress: 0,
+      dday: days,
+      status: 'active',
+      startedAt: now.toISOString(),
+      endsAt: end.toISOString(),
+    };
+    set((state) => ({ myRoutines: [newRoutine, ...state.myRoutines] }));
   },
 }));

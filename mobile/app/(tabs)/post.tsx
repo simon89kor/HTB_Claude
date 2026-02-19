@@ -3,8 +3,9 @@ import {
   View,
   Text,
   StyleSheet,
-  FlatList,
-  TouchableOpacity,
+  ScrollView,
+  Pressable,
+  Platform,
   Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -23,7 +24,7 @@ interface PostItem {
   category: PostCategory;
   title: string;
   content: string;
-  imageEmoji: string;
+  imageColor: string;
   hashtags: string[];
   likeCount: number;
   commentCount: number;
@@ -40,10 +41,10 @@ interface CategoryTab {
 
 const CATEGORY_TABS: CategoryTab[] = [
   { key: 'all', label: '전체' },
-  { key: 'review', label: '리뷰' },
+  { key: 'review', label: '후기' },
   { key: 'daily', label: '일상' },
   { key: 'question', label: '질문' },
-  { key: 'tip', label: '팁' },
+  { key: 'tip', label: '꿀팁' },
 ];
 
 const CATEGORY_EMOJI_MAP: Record<PostCategory, string> = {
@@ -58,151 +59,151 @@ const CATEGORY_EMOJI_MAP: Record<PostCategory, string> = {
 const MOCK_POSTS: PostItem[] = [
   {
     id: 'p-1',
-    nickname: '러닝하는서연',
-    avatarFallback: '서',
+    nickname: '루틴마스터',
+    avatarFallback: '루',
     timeAgo: '2시간 전',
     category: 'review',
-    title: '아침 기상 루틴 2주차 후기',
-    content: '매일 6시 반에 일어나는 게 습관이 되어가고 있어요! 처음엔 힘들었는데 이제 알람 없이도 눈이 떠져요.',
-    imageEmoji: '🌅',
-    hashtags: ['#미라클모닝', '#루틴후기', '#아침기상'],
-    likeCount: 42,
-    commentCount: 12,
+    title: '30일 운동 루틴 2주차 후기!',
+    content: '30일 운동 루틴 시작한 지 2주가 지났어요! 확실히 체력이 좋아지고 있는 게 느껴집니다. 매일 꾸준히 하는 게 비결인 것 같아요.',
+    imageColor: '#FFE0E0',
+    hashtags: ['#운동루틴', '#2주차후기', '#30일챌린지'],
+    likeCount: 89,
+    commentCount: 23,
     isLiked: false,
     isBookmarked: false,
   },
   {
     id: 'p-2',
-    nickname: '헬린이민준',
-    avatarFallback: '민',
+    nickname: '건강한하루',
+    avatarFallback: '건',
     timeAgo: '3시간 전',
     category: 'daily',
-    title: '오늘의 홈트 기록',
-    content: '스쿼트 50개 달성! 처음엔 20개도 힘들었는데 한 달 만에 여기까지 왔네요 💪',
-    imageEmoji: '💪',
-    hashtags: ['#홈트레이닝', '#운동일상', '#스쿼트챌린지'],
-    likeCount: 89,
-    commentCount: 24,
-    isLiked: true,
+    title: '오늘도 미라클모닝 성공 ☀️',
+    content: '새벽 5시에 일어나서 요가하고 독서까지! 미라클모닝 루틴 시작한 지 한 달째인데 이제 완전 습관이 됐어요.',
+    imageColor: '#FFF3E0',
+    hashtags: ['#미라클모닝', '#아침루틴', '#성공'],
+    likeCount: 156,
+    commentCount: 34,
+    isLiked: false,
     isBookmarked: false,
   },
   {
     id: 'p-3',
-    nickname: '공부하는하은',
-    avatarFallback: '하',
-    timeAgo: '5시간 전',
-    category: 'question',
-    title: '영어 독해 루틴 추천해주세요',
-    content: '토익 읽기 점수를 올리고 싶은데 매일 할 수 있는 좋은 영어 독해 루틴이 있을까요? 현재 700점대입니다.',
-    imageEmoji: '📚',
-    hashtags: ['#영어공부', '#토익', '#루틴추천'],
-    likeCount: 15,
-    commentCount: 31,
+    nickname: '다이어트중',
+    avatarFallback: '다',
+    timeAgo: '4시간 전',
+    category: 'review',
+    title: '밀프렙 식단 1주일 완주 🎉',
+    content: '일요일에 한 번에 준비하는 밀프렙 식단 루틴, 첫 주를 완주했습니다! 생각보다 쉽고 돈도 절약되네요.',
+    imageColor: '#E0FFE0',
+    hashtags: ['#밀프렙', '#식단관리', '#1주완주'],
+    likeCount: 234,
+    commentCount: 56,
     isLiked: false,
-    isBookmarked: true,
+    isBookmarked: false,
   },
   {
     id: 'p-4',
-    nickname: '다이어터영희',
-    avatarFallback: '영',
-    timeAgo: '6시간 전',
-    category: 'tip',
-    title: '클린 식단 일주일 꿀팁',
-    content: '일요일에 일주일치 식단을 미리 준비하면 훨씬 수월해요. 닭가슴살은 한 번에 구워서 냉동 보관!',
-    imageEmoji: '🥗',
-    hashtags: ['#클린식단', '#식단관리팁', '#밀프렙'],
-    likeCount: 156,
-    commentCount: 45,
-    isLiked: false,
-    isBookmarked: false,
-  },
-  {
-    id: 'p-5',
-    nickname: '도윤',
-    avatarFallback: '도',
-    timeAgo: '8시간 전',
-    category: 'review',
-    title: '30일 독서 챌린지 완주 후기',
-    content: '한 달 동안 매일 30분씩 읽었더니 4권을 완독했어요. 루틴의 힘을 제대로 느낀 한 달이었습니다.',
-    imageEmoji: '📖',
-    hashtags: ['#독서챌린지', '#30일챌린지', '#완주후기'],
-    likeCount: 203,
-    commentCount: 38,
-    isLiked: true,
-    isBookmarked: true,
-  },
-  {
-    id: 'p-6',
-    nickname: '요가러버수아',
-    avatarFallback: '수',
-    timeAgo: '10시간 전',
-    category: 'daily',
-    title: '아침 요가 10분의 기적',
-    content: '출근 전 10분 요가로 하루가 완전 달라졌어요. 몸도 가볍고 집중력도 올라간 느낌!',
-    imageEmoji: '🧘',
-    hashtags: ['#아침요가', '#10분루틴', '#일상기록'],
-    likeCount: 67,
-    commentCount: 8,
-    isLiked: false,
-    isBookmarked: false,
-  },
-  {
-    id: 'p-7',
-    nickname: '자격증마스터',
-    avatarFallback: '자',
-    timeAgo: '12시간 전',
-    category: 'tip',
-    title: '정보처리기사 합격 루틴 공유',
-    content: '매일 2시간씩 3개월 루틴으로 필기 합격했습니다. 오전 1시간 이론, 오후 1시간 기출 풀이가 핵심이에요.',
-    imageEmoji: '📝',
-    hashtags: ['#정보처리기사', '#자격증공부', '#합격루틴'],
-    likeCount: 312,
+    nickname: '공부벌레',
+    avatarFallback: '공',
+    timeAgo: '5시간 전',
+    category: 'question',
+    title: '정보처리기사 실기 준비 어떻게 하세요?',
+    content: '정보처리기사 필기는 합격했는데 실기가 막막합니다. 매일 어떤 루틴으로 공부하고 계신지 공유해주세요!',
+    imageColor: '#E0E0FF',
+    hashtags: ['#정보처리기사', '#실기준비', '#질문'],
+    likeCount: 45,
     commentCount: 67,
     isLiked: false,
     isBookmarked: false,
   },
   {
-    id: 'p-8',
-    nickname: '건강한예준',
-    avatarFallback: '예',
-    timeAgo: '1일 전',
-    category: 'question',
-    title: '운동 루틴 중 쉬는 날은 어떻게?',
-    content: '주 5일 운동 루틴을 하고 있는데 쉬는 날에도 가벼운 활동을 해야 할까요? 완전 휴식이 좋은지 궁금합니다.',
-    imageEmoji: '🤔',
-    hashtags: ['#운동질문', '#휴식일', '#운동루틴'],
-    likeCount: 28,
+    id: 'p-5',
+    nickname: '요가러버',
+    avatarFallback: '요',
+    timeAgo: '6시간 전',
+    category: 'daily',
+    title: '아침 요가 루틴 진짜 좋아요',
+    content: '매일 아침 20분 요가 루틴 시작한 지 3주째! 몸이 훨씬 유연해지고 하루 종일 기분이 좋아요.',
+    imageColor: '#F0E0FF',
+    hashtags: ['#아침요가', '#루틴추천', '#일상'],
+    likeCount: 312,
+    commentCount: 28,
+    isLiked: false,
+    isBookmarked: false,
+  },
+  {
+    id: 'p-6',
+    nickname: '영어왕',
+    avatarFallback: '영',
+    timeAgo: '8시간 전',
+    category: 'tip',
+    title: '쉐도잉할 때 이 방법 추천해요',
+    content: '영어 쉐도잉 루틴을 할 때, 처음에는 0.75배속으로 듣고 따라하다가 점점 속도를 올리면 훨씬 효과적이에요!',
+    imageColor: '#E0F0FF',
+    hashtags: ['#영어쉐도잉', '#공부팁', '#영어루틴'],
+    likeCount: 178,
+    commentCount: 45,
+    isLiked: false,
+    isBookmarked: false,
+  },
+  {
+    id: 'p-7',
+    nickname: '비건초보',
+    avatarFallback: '비',
+    timeAgo: '10시간 전',
+    category: 'review',
+    title: '비건 식단 일주일 도전 중간 후기',
+    content: '비건 식단 루틴 도전 중입니다. 생각보다 맛있는 레시피가 많아서 놀랐어요. 다음 주도 화이팅!',
+    imageColor: '#E0FFE8',
+    hashtags: ['#비건식단', '#도전', '#중간후기'],
+    likeCount: 67,
     commentCount: 19,
     isLiked: false,
     isBookmarked: false,
   },
   {
+    id: 'p-8',
+    nickname: '갓생러',
+    avatarFallback: '갓',
+    timeAgo: '12시간 전',
+    category: 'daily',
+    title: '새벽 5시 기상 7일째 성공!',
+    content: '갓생 살기 프로젝트 일주일차! 새벽에 일어나서 운동, 독서, 영어공부까지. 루틴의 힘을 느끼고 있어요.',
+    imageColor: '#FFFDE0',
+    hashtags: ['#갓생', '#새벽기상', '#7일성공'],
+    likeCount: 198,
+    commentCount: 41,
+    isLiked: false,
+    isBookmarked: false,
+  },
+  {
     id: 'p-9',
-    nickname: '지우',
-    avatarFallback: '지',
+    nickname: '토익도전',
+    avatarFallback: '토',
     timeAgo: '1일 전',
-    category: 'review',
-    title: '피부관리 루틴 한 달 후기',
-    content: '아침저녁 스킨케어 루틴을 꾸준히 했더니 피부 톤이 확실히 밝아졌어요. 루틴이 진짜 중요하네요!',
-    imageEmoji: '✨',
-    hashtags: ['#피부관리', '#스킨케어루틴', '#한달후기'],
-    likeCount: 94,
-    commentCount: 22,
+    category: 'question',
+    title: '토익 LC 파트3이 제일 어려워요 ㅠㅠ',
+    content: '토익 LC 파트3 대화문이 너무 어려운데, 매일 루틴으로 어떻게 연습하고 계신가요? 좋은 방법이 있으면 공유 부탁드려요.',
+    imageColor: '#FFE8E0',
+    hashtags: ['#토익', '#LC파트3', '#공부질문'],
+    likeCount: 34,
+    commentCount: 52,
     isLiked: false,
     isBookmarked: false,
   },
   {
     id: 'p-10',
-    nickname: '시우',
-    avatarFallback: '시',
-    timeAgo: '2일 전',
-    category: 'daily',
-    title: '새벽 5시 기상 7일째',
-    content: '미라클 모닝 루틴 시작한 지 일주일. 확실히 하루가 길어진 느낌이에요. 아침에 운동하고 독서까지!',
-    imageEmoji: '⏰',
-    hashtags: ['#새벽기상', '#미라클모닝', '#7일차'],
-    likeCount: 135,
-    commentCount: 41,
+    nickname: '쌍둥이맘팬',
+    avatarFallback: '쌍',
+    timeAgo: '1일 전',
+    category: 'review',
+    title: '틈새 운동 루틴 한 달 후기 (육아맘 필독!)',
+    content: '아이 낮잠 자는 틈에 10분씩 운동하는 루틴! 한 달 했더니 체력이 확실히 좋아졌어요. 육아맘들 강추합니다.',
+    imageColor: '#FFE0F0',
+    hashtags: ['#틈새운동', '#육아맘', '#한달후기'],
+    likeCount: 267,
+    commentCount: 38,
     isLiked: false,
     isBookmarked: false,
   },
@@ -249,63 +250,60 @@ export default function PostScreen() {
     );
   }, []);
 
-  const renderPost = ({ item }: { item: PostItem }) => (
-    <PostCard
-      post={item}
-      onToggleLike={() => toggleLike(item.id)}
-      onToggleBookmark={() => toggleBookmark(item.id)}
-    />
-  );
-
-  const keyExtractor = (item: PostItem) => item.id;
-
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       {/* Header */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>커뮤니티</Text>
-        <TouchableOpacity onPress={handleWritePress} activeOpacity={0.7}>
+        <Pressable
+          style={({ pressed }) => [
+            pressed && { opacity: 0.7 },
+            Platform.OS === 'web' ? ({ cursor: 'pointer' } as any) : undefined,
+          ]}
+          onPress={handleWritePress}
+        >
           <PenSquare size={22} color={colors.textPrimary} />
-        </TouchableOpacity>
+        </Pressable>
       </View>
 
       {/* Category Tabs */}
       <View style={styles.categoryContainer}>
-        <FlatList
-          data={CATEGORY_TABS}
+        <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
-          keyExtractor={(item) => item.key}
           contentContainerStyle={styles.categoryContent}
-          renderItem={({ item }) => (
-            <View style={styles.chipWrapper}>
+        >
+          {CATEGORY_TABS.map((tab) => (
+            <View key={tab.key} style={styles.chipWrapper}>
               <Chip
-                label={item.label}
-                selected={selectedCategory === item.key}
-                onPress={() => setSelectedCategory(item.key)}
+                label={tab.label}
+                selected={selectedCategory === tab.key}
+                onPress={() => setSelectedCategory(tab.key)}
               />
             </View>
-          )}
-        />
+          ))}
+        </ScrollView>
       </View>
 
       {/* Posts Feed */}
-      <FlatList
-        data={filteredPosts}
-        renderItem={renderPost}
-        keyExtractor={keyExtractor}
+      <ScrollView
+        style={styles.feedScroll}
         contentContainerStyle={styles.feedContent}
         showsVerticalScrollIndicator={false}
-        ItemSeparatorComponent={PostSeparator}
-      />
+      >
+        {filteredPosts.map((post, index) => (
+          <React.Fragment key={post.id}>
+            {index > 0 && <View style={styles.separator} />}
+            <PostCard
+              post={post}
+              onToggleLike={() => toggleLike(post.id)}
+              onToggleBookmark={() => toggleBookmark(post.id)}
+            />
+          </React.Fragment>
+        ))}
+      </ScrollView>
     </SafeAreaView>
   );
-}
-
-// ─── Post Separator ─────────────────────────────────────
-
-function PostSeparator() {
-  return <View style={styles.separator} />;
 }
 
 // ─── Post Card ──────────────────────────────────────────
@@ -341,8 +339,10 @@ function PostCard({ post, onToggleLike, onToggleBookmark }: PostCardProps) {
       </Text>
 
       {/* Image Placeholder */}
-      <View style={styles.imagePlaceholder}>
-        <Text style={styles.imageEmoji}>{post.imageEmoji}</Text>
+      <View style={[styles.imagePlaceholder, { backgroundColor: post.imageColor }]}>
+        <Text style={styles.imageEmoji}>
+          {CATEGORY_EMOJI_MAP[post.category]}
+        </Text>
       </View>
 
       {/* Hashtags */}
@@ -356,10 +356,13 @@ function PostCard({ post, onToggleLike, onToggleBookmark }: PostCardProps) {
 
       {/* Interactions */}
       <View style={styles.interactions}>
-        <TouchableOpacity
-          style={styles.interactionButton}
+        <Pressable
+          style={({ pressed }) => [
+            styles.interactionButton,
+            pressed && { opacity: 0.7 },
+            Platform.OS === 'web' ? ({ cursor: 'pointer' } as any) : undefined,
+          ]}
           onPress={onToggleLike}
-          activeOpacity={0.7}
         >
           <Heart
             size={18}
@@ -374,26 +377,35 @@ function PostCard({ post, onToggleLike, onToggleBookmark }: PostCardProps) {
           >
             {post.likeCount}
           </Text>
-        </TouchableOpacity>
+        </Pressable>
 
-        <TouchableOpacity style={styles.interactionButton} activeOpacity={0.7}>
+        <Pressable
+          style={({ pressed }) => [
+            styles.interactionButton,
+            pressed && { opacity: 0.7 },
+            Platform.OS === 'web' ? ({ cursor: 'pointer' } as any) : undefined,
+          ]}
+        >
           <MessageCircle size={18} color={colors.textSecondary} />
           <Text style={styles.interactionCount}>{post.commentCount}</Text>
-        </TouchableOpacity>
+        </Pressable>
 
         <View style={styles.interactionSpacer} />
 
-        <TouchableOpacity
-          style={styles.interactionButton}
+        <Pressable
+          style={({ pressed }) => [
+            styles.interactionButton,
+            pressed && { opacity: 0.7 },
+            Platform.OS === 'web' ? ({ cursor: 'pointer' } as any) : undefined,
+          ]}
           onPress={onToggleBookmark}
-          activeOpacity={0.7}
         >
           <Bookmark
             size={18}
             color={post.isBookmarked ? colors.primary : colors.textSecondary}
             fill={post.isBookmarked ? colors.primary : 'none'}
           />
-        </TouchableOpacity>
+        </Pressable>
       </View>
     </View>
   );
@@ -437,6 +449,9 @@ const styles = StyleSheet.create({
   },
 
   // Feed
+  feedScroll: {
+    flex: 1,
+  },
   feedContent: {
     paddingBottom: spacing.xl,
   },
@@ -501,7 +516,6 @@ const styles = StyleSheet.create({
   // Image Placeholder
   imagePlaceholder: {
     height: 200,
-    backgroundColor: colors.bgSecondary,
     borderRadius: borderRadius.sm,
     alignItems: 'center',
     justifyContent: 'center',
