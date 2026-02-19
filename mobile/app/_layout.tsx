@@ -3,6 +3,7 @@ import { Stack, useRouter, useSegments } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
 import { StatusBar } from 'expo-status-bar';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { useAuthStore } from '@/src/stores/authStore';
 
 export { ErrorBoundary } from 'expo-router';
@@ -44,8 +45,8 @@ export default function RootLayout() {
       // Authenticated but not onboarded, show preference
       router.replace('/(auth)/preference');
     } else if (isAuthenticated && isOnboarded && inAuthGroup) {
-      // Fully onboarded, go to tabs
-      router.replace('/(tabs)');
+      // Fully onboarded, go to BOARD tab (기존 사용자 기본 랜딩)
+      router.replace('/(tabs)/board');
     }
   }, [isAuthenticated, isOnboarded, segments, loaded]);
 
@@ -54,7 +55,7 @@ export default function RootLayout() {
   }
 
   return (
-    <>
+    <GestureHandlerRootView style={{ flex: 1 }}>
       <StatusBar style="dark" />
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="(auth)" />
@@ -63,6 +64,6 @@ export default function RootLayout() {
         <Stack.Screen name="routine/[id]" options={{ headerShown: false }} />
         <Stack.Screen name="purchase/[id]" options={{ headerShown: false, presentation: 'modal' }} />
       </Stack>
-    </>
+    </GestureHandlerRootView>
   );
 }

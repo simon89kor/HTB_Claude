@@ -36,9 +36,19 @@ export default function MyScreen() {
 
   useEffect(() => {
     loadProfile();
-  }, [loadProfile]);
+  }, []);
 
-  if (isLoading || !profile) {
+  if (isLoading && !profile) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={colors.primary} />
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  if (!profile) {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.loadingContainer}>

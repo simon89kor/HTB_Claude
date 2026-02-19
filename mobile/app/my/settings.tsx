@@ -19,6 +19,8 @@ import {
   ChevronRight,
 } from 'lucide-react-native';
 import { colors, typography, spacing } from '@/src/theme/tokens';
+import { useAuthStore } from '@/src/stores/authStore';
+import { useUserStore } from '@/src/stores/userStore';
 import Header from '@/src/components/common/Header';
 import Divider from '@/src/components/common/Divider';
 
@@ -32,6 +34,8 @@ interface SettingsItem {
 
 export default function SettingsScreen() {
   const router = useRouter();
+  const logout = useAuthStore((s) => s.logout);
+  const resetProfile = useUserStore((s) => s.resetProfile);
 
   const handleLogout = () => {
     Alert.alert(
@@ -42,7 +46,11 @@ export default function SettingsScreen() {
         {
           text: '로그아웃',
           style: 'destructive',
-          onPress: () => router.replace('/'),
+          onPress: () => {
+            resetProfile();
+            logout();
+            // Root _layout.tsx will detect isAuthenticated=false and redirect to auth
+          },
         },
       ]
     );
@@ -58,7 +66,8 @@ export default function SettingsScreen() {
           text: '탈퇴',
           style: 'destructive',
           onPress: () => {
-            Alert.alert('안내', '회원탈퇴가 완료되었습니다.');
+            resetProfile();
+            logout();
           },
         },
       ]

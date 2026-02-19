@@ -55,6 +55,7 @@ interface UserStoreState {
 
 interface UserStoreActions {
   loadProfile: () => void;
+  resetProfile: () => void;
   updateProfile: (data: Partial<UserProfile>) => void;
   toggleFollow: (userId: string) => void;
   setNotificationSetting: (key: keyof NotificationSettings, value: boolean) => void;
@@ -214,6 +215,12 @@ export const useUserStore = create<UserStoreState & UserStoreActions>()((set, ge
 
   // Actions
   loadProfile: () => {
+    const { profile } = get();
+    // Skip if already loaded
+    if (profile) {
+      set({ isLoading: false });
+      return;
+    }
     set({ isLoading: true });
     // Simulate loading
     setTimeout(() => {
@@ -225,6 +232,16 @@ export const useUserStore = create<UserStoreState & UserStoreActions>()((set, ge
         isLoading: false,
       });
     }, 300);
+  },
+
+  resetProfile: () => {
+    set({
+      profile: null,
+      myRoutines: [],
+      followers: [],
+      following: [],
+      isLoading: false,
+    });
   },
 
   updateProfile: (data: Partial<UserProfile>) => {

@@ -107,7 +107,7 @@ export default function BoardScreen() {
 
   useEffect(() => {
     loadProfile();
-  }, [loadProfile]);
+  }, []);
 
   // Auto-expand all active routines on first load
   useEffect(() => {
