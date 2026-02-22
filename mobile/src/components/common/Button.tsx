@@ -1,11 +1,12 @@
 import React from 'react';
 import {
-  TouchableOpacity,
+  Pressable,
   Text,
   ActivityIndicator,
   StyleSheet,
   ViewStyle,
   TextStyle,
+  Platform,
 } from 'react-native';
 import { colors, typography, spacing, borderRadius } from '@/src/theme/tokens';
 
@@ -69,22 +70,22 @@ export default function Button({
 }: ButtonProps) {
   const variantStyle = variantStyles[variant];
   const sizeStyle = sizeStyles[size];
-
   const indicatorColor = variant === 'primary' ? colors.textWhite : colors.primary;
 
   return (
-    <TouchableOpacity
-      style={[
+    <Pressable
+      style={({ pressed }) => [
         styles.base,
         variantStyle.container,
         sizeStyle.container,
         fullWidth && styles.fullWidth,
         (disabled || loading) && styles.disabled,
+        pressed && !disabled && !loading && { opacity: 0.7 },
+        Platform.OS === 'web' && !disabled && !loading ? ({ cursor: 'pointer' } as any) : undefined,
         style,
       ]}
       onPress={onPress}
       disabled={disabled || loading}
-      activeOpacity={0.7}
     >
       {loading ? (
         <ActivityIndicator size="small" color={indicatorColor} />
@@ -93,7 +94,7 @@ export default function Button({
           {title}
         </Text>
       )}
-    </TouchableOpacity>
+    </Pressable>
   );
 }
 

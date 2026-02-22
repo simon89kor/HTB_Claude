@@ -1,5 +1,5 @@
 import React, { ReactNode } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, Pressable, StyleSheet, Platform } from 'react-native';
 import { ChevronLeft } from 'lucide-react-native';
 import { colors, typography, spacing } from '@/src/theme/tokens';
 
@@ -27,14 +27,17 @@ export default function Header({
     >
       <View style={styles.left}>
         {onBack && (
-          <TouchableOpacity
-            style={styles.backButton}
+          <Pressable
+            style={({ pressed }) => [
+              styles.backButton,
+              pressed && { opacity: 0.7 },
+              Platform.OS === 'web' ? ({ cursor: 'pointer' } as any) : undefined,
+            ]}
             onPress={onBack}
-            activeOpacity={0.7}
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
           >
             <ChevronLeft size={24} color={colors.textPrimary} />
-          </TouchableOpacity>
+          </Pressable>
         )}
       </View>
 

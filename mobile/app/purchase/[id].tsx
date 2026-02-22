@@ -3,23 +3,25 @@ import {
   View,
   Text,
   ScrollView,
-  TouchableOpacity,
+  Pressable,
   StyleSheet,
   Alert,
+  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
-import { CreditCard, Wallet } from 'lucide-react-native';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { CreditCard, Wallet, X } from 'lucide-react-native';
 import { colors, typography, spacing, borderRadius } from '@/src/theme/tokens';
 import { Header, Button, Divider, Checkbox } from '@/src/components/common';
 import { usePurchaseStore } from '@/src/stores/purchaseStore';
+import { useUserStore } from '@/src/stores/userStore';
 import { formatCurrency, periodLabel } from '@/src/utils/format';
 
 const paymentMethods = [
-  { key: 'card', label: '신용/체크카드', iconType: 'card' as const },
+  { key: 'card', label: '신용카드', iconType: 'card' as const },
   { key: 'kakao', label: '카카오페이', iconType: 'wallet' as const },
   { key: 'naver', label: '네이버페이', iconType: 'wallet' as const },
-  { key: 'toss', label: '토스페이', iconType: 'wallet' as const },
+  { key: 'toss', label: '토스', iconType: 'wallet' as const },
 ];
 
 const paymentIconColors: Record<string, string> = {
@@ -30,18 +32,19 @@ const paymentIconColors: Record<string, string> = {
 };
 
 export default function PurchaseScreen() {
+  const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const {
     selectedRoutine,
     selectedPeriod,
     selectedPaymentMethod,
-    isAgreed,
     isProcessing,
     setPaymentMethod,
     setAgreed,
     processPurchase,
     reset,
   } = usePurchaseStore();
+  const { addPurchasedRoutine } = useUserStore();
 
   const [localAgreed, setLocalAgreed] = useState(false);
 
@@ -76,16 +79,24 @@ export default function PurchaseScreen() {
     const success = await processPurchase();
 
     if (success) {
+      addPurchasedRoutine(
+        selectedRoutine.id,
+        selectedRoutine.title,
+        selectedRoutine.category,
+        providerName,
+        selectedPeriod,
+      );
+
       Alert.alert(
         '결제 완료',
-        '결제가 완료되었습니다!\n구매한 루틴은 MY 탭에서 확인할 수 있습니다.',
+        '결제가 완료되었습니다!',
         [
           {
             text: '확인',
             onPress: () => {
               reset();
               router.dismissAll();
-              router.replace('/(tabs)');
+              router.replace('/(tabs)/board');
             },
           },
         ]
@@ -93,6 +104,10 @@ export default function PurchaseScreen() {
     } else {
       Alert.alert('결제 실패', '결제 처리 중 오류가 발생했습니다. 다시 시도해주세요.');
     }
+  };
+
+  const handleClose = () => {
+    router.back();
   };
 
   const renderPaymentIcon = (iconType: 'card' | 'wallet', methodKey: string) => {
@@ -105,7 +120,22 @@ export default function PurchaseScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <Header title="결제하기" onBack={() => router.back()} />
+      <Header
+        title="결제하기"
+        onBack={() => router.back()}
+        rightAction={
+          <Pressable
+            style={({ pressed }) => [
+              pressed && { opacity: 0.7 },
+              Platform.OS === 'web' ? ({ cursor: 'pointer' } as any) : undefined,
+            ]}
+            onPress={handleClose}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          >
+            <X size={22} color={colors.textPrimary} />
+          </Pressable>
+        }
+      />
 
       <ScrollView
         style={styles.scrollView}
@@ -153,13 +183,14 @@ export default function PurchaseScreen() {
             {paymentMethods.map((method) => {
               const isSelected = selectedPaymentMethod === method.key;
               return (
-                <TouchableOpacity
+                <Pressable
                   key={method.key}
-                  style={[
+                  style={({ pressed }) => [
                     styles.paymentMethod,
                     isSelected && styles.paymentMethodSelected,
+                    pressed && { opacity: 0.7 },
+                    Platform.OS === 'web' ? ({ cursor: 'pointer' } as any) : undefined,
                   ]}
-                  activeOpacity={0.7}
                   onPress={() => setPaymentMethod(method.key)}
                 >
                   <View style={styles.paymentMethodLeft}>
@@ -183,7 +214,7 @@ export default function PurchaseScreen() {
                       {method.label}
                     </Text>
                   </View>
-                </TouchableOpacity>
+                </Pressable>
               );
             })}
           </View>
@@ -194,7 +225,7 @@ export default function PurchaseScreen() {
           <Checkbox
             checked={localAgreed}
             onToggle={() => setLocalAgreed(!localAgreed)}
-            label="주문 내용을 확인하였으며, 결제에 동의합니다"
+            label="이용약관에 동의합니다"
           />
         </View>
 

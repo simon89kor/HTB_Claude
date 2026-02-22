@@ -4,7 +4,7 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  TouchableOpacity,
+  Pressable,
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
@@ -26,12 +26,7 @@ export default function SignUpScreen() {
   const [nickname, setNickname] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showPasswordConfirm, setShowPasswordConfirm] = useState(false);
-
-  // Terms state
-  const [termsAll, setTermsAll] = useState(false);
-  const [termsService, setTermsService] = useState(false);
-  const [termsPrivacy, setTermsPrivacy] = useState(false);
-  const [termsMarketing, setTermsMarketing] = useState(false);
+  const [termsAgreed, setTermsAgreed] = useState(false);
 
   // Touched state for validation display
   const [touched, setTouched] = useState({
@@ -44,7 +39,8 @@ export default function SignUpScreen() {
   // Validation
   const emailError = useMemo(() => {
     if (!touched.email || !email) return '';
-    if (!email.includes('@')) return '올바른 이메일 형식을 입력해주세요';
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) return '올바른 이메일 형식을 입력해주세요';
     return '';
   }, [email, touched.email]);
 
@@ -68,43 +64,14 @@ export default function SignUpScreen() {
   }, [nickname, touched.nickname]);
 
   const isFormValid = useMemo(() => {
-    const emailValid = email.includes('@');
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const emailValid = emailRegex.test(email);
     const passwordValid = password.length >= 8;
     const passwordConfirmValid = password === passwordConfirm && passwordConfirm.length > 0;
     const nicknameValid = nickname.length >= 2 && nickname.length <= 12;
-    const termsValid = termsService && termsPrivacy;
 
-    return emailValid && passwordValid && passwordConfirmValid && nicknameValid && termsValid;
-  }, [email, password, passwordConfirm, nickname, termsService, termsPrivacy]);
-
-  const handleToggleAll = () => {
-    const newValue = !termsAll;
-    setTermsAll(newValue);
-    setTermsService(newValue);
-    setTermsPrivacy(newValue);
-    setTermsMarketing(newValue);
-  };
-
-  const handleToggleService = () => {
-    const newValue = !termsService;
-    setTermsService(newValue);
-    if (!newValue) setTermsAll(false);
-    else if (newValue && termsPrivacy && termsMarketing) setTermsAll(true);
-  };
-
-  const handleTogglePrivacy = () => {
-    const newValue = !termsPrivacy;
-    setTermsPrivacy(newValue);
-    if (!newValue) setTermsAll(false);
-    else if (termsService && newValue && termsMarketing) setTermsAll(true);
-  };
-
-  const handleToggleMarketing = () => {
-    const newValue = !termsMarketing;
-    setTermsMarketing(newValue);
-    if (!newValue) setTermsAll(false);
-    else if (termsService && termsPrivacy && newValue) setTermsAll(true);
-  };
+    return emailValid && passwordValid && passwordConfirmValid && nicknameValid && termsAgreed;
+  }, [email, password, passwordConfirm, nickname, termsAgreed]);
 
   const handleSubmit = async () => {
     if (!isFormValid) return;
@@ -160,17 +127,20 @@ export default function SignUpScreen() {
               secureTextEntry={!showPassword}
               error={passwordError}
             />
-            <TouchableOpacity
-              style={styles.eyeButton}
+            <Pressable
+              style={({ pressed }) => [
+                styles.eyeButton,
+                pressed && { opacity: 0.7 },
+                Platform.OS === 'web' ? ({ cursor: 'pointer' } as any) : undefined,
+              ]}
               onPress={() => setShowPassword(!showPassword)}
-              activeOpacity={0.7}
             >
               {showPassword ? (
                 <EyeOff size={20} color={colors.textSecondary} />
               ) : (
                 <Eye size={20} color={colors.textSecondary} />
               )}
-            </TouchableOpacity>
+            </Pressable>
           </View>
 
           {/* Password confirm */}
@@ -186,17 +156,20 @@ export default function SignUpScreen() {
               secureTextEntry={!showPasswordConfirm}
               error={passwordConfirmError}
             />
-            <TouchableOpacity
-              style={styles.eyeButton}
+            <Pressable
+              style={({ pressed }) => [
+                styles.eyeButton,
+                pressed && { opacity: 0.7 },
+                Platform.OS === 'web' ? ({ cursor: 'pointer' } as any) : undefined,
+              ]}
               onPress={() => setShowPasswordConfirm(!showPasswordConfirm)}
-              activeOpacity={0.7}
             >
               {showPasswordConfirm ? (
                 <EyeOff size={20} color={colors.textSecondary} />
               ) : (
                 <Eye size={20} color={colors.textSecondary} />
               )}
-            </TouchableOpacity>
+            </Pressable>
           </View>
 
           {/* Nickname */}
@@ -214,35 +187,11 @@ export default function SignUpScreen() {
 
           {/* Terms */}
           <View style={styles.termsSection}>
-            <View style={styles.termsAllRow}>
-              <Checkbox
-                checked={termsAll}
-                onToggle={handleToggleAll}
-                label="전체 동의"
-              />
-            </View>
-            <View style={styles.termsDivider} />
-            <View style={styles.termsRow}>
-              <Checkbox
-                checked={termsService}
-                onToggle={handleToggleService}
-                label="[필수] 이용약관 동의"
-              />
-            </View>
-            <View style={styles.termsRow}>
-              <Checkbox
-                checked={termsPrivacy}
-                onToggle={handleTogglePrivacy}
-                label="[필수] 개인정보처리방침 동의"
-              />
-            </View>
-            <View style={styles.termsRow}>
-              <Checkbox
-                checked={termsMarketing}
-                onToggle={handleToggleMarketing}
-                label="[선택] 마케팅 정보 수신 동의"
-              />
-            </View>
+            <Checkbox
+              checked={termsAgreed}
+              onToggle={() => setTermsAgreed(!termsAgreed)}
+              label="이용약관 및 개인정보 처리방침에 동의합니다"
+            />
           </View>
         </ScrollView>
 
@@ -289,17 +238,6 @@ const styles = StyleSheet.create({
     backgroundColor: colors.bgSecondary,
     borderRadius: 12,
     padding: spacing.md,
-  },
-  termsAllRow: {
-    paddingVertical: spacing.sm,
-  },
-  termsDivider: {
-    height: 1,
-    backgroundColor: colors.border,
-    marginVertical: spacing.sm,
-  },
-  termsRow: {
-    paddingVertical: spacing.xs + 2,
   },
   buttonContainer: {
     paddingHorizontal: spacing.md,
